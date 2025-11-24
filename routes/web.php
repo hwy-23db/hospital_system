@@ -14,6 +14,13 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
+Route::get('/csrf-token', function() {
+    return response()->json([
+        'csrf_token' => csrf_token()
+    ]);
+});
+
 //admin login
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
