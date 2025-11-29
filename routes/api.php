@@ -41,13 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User management endpoints - ONLY accessible by root_user
     Route::middleware('root_user')->group(function () {
-        // List all users
+        // List users (active by default, add ?deleted=true for deleted users)
         Route::get('/users', [AuthController::class, 'index']);
 
         // Send password reset link to a user
         Route::post('/users/forgot-password', [AuthController::class, 'sendPasswordResetLink']);
 
-        // Delete a user
+        // Delete a user (soft delete)
         Route::delete('/users/{id}', [AuthController::class, 'destroy']);
+
+        // Restore a soft-deleted user
+        Route::post('/users/{id}/restore', [AuthController::class, 'restore']);
     });
 });

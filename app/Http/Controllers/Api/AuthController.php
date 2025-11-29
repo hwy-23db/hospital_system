@@ -198,12 +198,38 @@ class AuthController extends Controller
 
     /**
      * List Users Endpoint
-     * Returns a list of all users in the system
+     * Returns a list of users in the system
+     * Can show active users or soft-deleted users based on query parameter
      * ONLY accessible by root_user
      */
     public function index(Request $request)
     {
-        // Get all users, excluding sensitive fields
+        // Check if requesting deleted users
+        $showDeleted = $request->query('deleted', false);
+
+        if ($showDeleted) {
+            // Get all soft-deleted users, excluding sensitive fields
+            $users = User::onlyTrashed()
+                ->select('id', 'name', 'email', 'role', 'email_verified_at', 'created_at', 'updated_at', 'deleted_at')
+                ->orderBy('deleted_at', 'desc')
+                ->get();
+
+            // Log deleted users list access for audit trail
+            Log::info('Deleted users list accessed by root_user', [
+                'accessed_by' => $request->user()->id,
+                'accessed_by_email' => $request->user()->email,
+                'total_deleted_users' => $users->count(),
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'message' => 'Deleted users retrieved successfully',
+                'total' => $users->count(),
+                'users' => $users,
+            ]);
+        }
+
+        // Get all active users (default), excluding sensitive fields
         $users = User::select('id', 'name', 'email', 'role', 'email_verified_at', 'created_at', 'updated_at')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -347,8 +373,88 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'User deleted successfully',
-            'deleted_user' => $deletedUserInfo
+            'message' => 'User deleted successfully (soft delete). User can be restored.',
+            'deleted_user' => $deletedUserInfo,
+            'deleted_at' => $user->deleted_at
+        ], 200);
+    }
+
+    /**
+     * Restore User Endpoint
+     * Restores a soft-deleted user
+     * ONLY accessible by root_user
+     */
+    public function restore(Request $request, $id)
+    {
+        // Validate that id is a valid integer
+        if (!is_numeric($id) || (int)$id != $id) {
+            return response()->json([
+                'message' => 'Invalid user ID provided.'
+            ], 400);
+        }
+
+        // Find user including soft deleted users
+        $user = User::withTrashed()->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'The specified user does not exist.'
+            ], 404);
+        }
+
+        // Check if user is actually deleted
+        if (!$user->trashed()) {
+            return response()->json([
+                'message' => 'User is not deleted. Nothing to restore.'
+            ], 400);
+        }
+
+        // Prevent restoring root user (should not be deleted in first place)
+        if ($user->role === 'root_user') {
+            Log::warning('Attempt to restore root_user', [
+                'attempted_by' => $request->user()->id,
+                'target_user_id' => $user->id,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json([
+                'message' => 'Cannot restore root user through this endpoint.'
+            ], 403);
+        }
+
+        // Store user info for logging before restoration
+        $restoredUserInfo = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'deleted_at' => $user->deleted_at,
+        ];
+
+        // Restore the user
+        $user->restore();
+
+        // Log the restoration for audit trail
+        Log::info('User restored by root_user', [
+            'restored_user_id' => $restoredUserInfo['id'],
+            'restored_email' => $restoredUserInfo['email'],
+            'restored_role' => $restoredUserInfo['role'],
+            'was_deleted_at' => $restoredUserInfo['deleted_at'],
+            'restored_by' => $request->user()->id,
+            'restored_by_email' => $request->user()->email,
+            'ip' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'message' => 'User restored successfully',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'deleted_at' => null,
+                'restored_at' => now(),
+            ]
         ], 200);
     }
 }
