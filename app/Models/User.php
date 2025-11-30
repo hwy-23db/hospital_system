@@ -13,11 +13,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -25,27 +20,30 @@ class User extends Authenticatable
         'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Relationships to role-specific tables
+     */
+    public function doctor()
+    {
+        return $this->hasOne(Doctor::class);
+    }
+
+    public function nurse()
+    {
+        return $this->hasOne(Nurse::class);
     }
 
     /**
@@ -57,7 +55,6 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function ($user) {
-            // If trying to create a root_user, check if one already exists
             if ($user->role === 'root_user') {
                 $existingRootUser = static::where('role', 'root_user')
                     ->where('id', '!=', $user->id)
@@ -69,27 +66,26 @@ class User extends Authenticatable
                     ]);
 
                     throw ValidationException::withMessages([
-                        'role' => ['Root user already exists. Only one root user is allowed in the system.'],
+                        'role' => ['Root user already exists. Only one root user is allowed.'],
                     ]);
                 }
             }
         });
 
         static::updating(function ($user) {
-            // Prevent changing a non-root user to root_user if one already exists
             if ($user->isDirty('role') && $user->role === 'root_user') {
                 $existingRootUser = static::where('role', 'root_user')
                     ->where('id', '!=', $user->id)
                     ->exists();
 
                 if ($existingRootUser) {
-                    Log::warning('Attempt to change role to root_user blocked - root user already exists', [
+                    Log::warning('Attempt to change role to root_user blocked', [
                         'user_id' => $user->id,
                         'email' => $user->email,
                     ]);
 
                     throw ValidationException::withMessages([
-                        'role' => ['Root user already exists. Only one root user is allowed in the system.'],
+                        'role' => ['Root user already exists. Only one root user is allowed.'],
                     ]);
                 }
             }

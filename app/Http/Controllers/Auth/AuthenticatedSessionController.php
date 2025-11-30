@@ -22,7 +22,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-  public function store(Request $request)
+ public function store(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
@@ -35,20 +35,8 @@ class AuthenticatedSessionController extends Controller
 
     $request->session()->regenerate();
 
-    $role = Auth::user()->role;
-
-    // Redirect based on role
-    switch ($role) {
-        case 'admin':
-            return redirect()->route('admin.dashboard');
-        case 'doctor':
-            return redirect()->route('doctor.dashboard');
-        case 'nurse':
-            return redirect()->route('nurse.dashboard');
-        default:
-            Auth::logout();
-            return redirect()->route('login')->withErrors('Unauthorized role');
-    }
+    // Redirect all users to the shared dashboard
+    return redirect()->route('dashboard');
 }
 
     /**
