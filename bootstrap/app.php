@@ -13,9 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
 
-        // Global middleware (rarely used)
+        // Global middleware - Security headers applied to all responses
         $middleware->append([
-            //
+            \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ]);
 
         // Web middleware group
@@ -28,8 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // API middleware group
+        // Note: EnsureFrontendRequestsAreStateful is removed because we use token-based auth, not session-based
+        // This middleware is only needed for SPAs using cookie-based authentication
         $middleware->api([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
