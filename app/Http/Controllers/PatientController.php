@@ -190,24 +190,24 @@ class PatientController extends Controller
     /**
      * Check if the current user can access the patient
      */
-    protected function authorizePatientAccess(Patient $patient)
+  protected function authorizePatientAccess(Patient $patient)
 {
     $user = auth()->user();
 
+    // Admin can access everything
     if ($user->role === 'admin') return true;
 
-    if ($user->role === 'doctor') {
-        $doctor = \App\Models\Doctor::where('email', $user->email)->first();
-        if (!$doctor) abort(403, 'Unauthorized');
-        if ($patient->doctor_id === $doctor->id) return true;
+    // Doctor can access their assigned patients
+    if ($user->role === 'doctor' && $patient->doctor && $patient->doctor->email === $user->email) {
+        return true;
     }
 
-    if ($user->role === 'nurse') {
-        $nurse = \App\Models\Nurse::where('email', $user->email)->first();
-        if (!$nurse) abort(403, 'Unauthorized');
-        if ($patient->nurse_id === $nurse->id) return true;
+    // Nurse can access their assigned patients
+    if ($user->role === 'nurse' && $patient->nurse && $patient->nurse->email === $user->email) {
+        return true;
     }
 
+    // Deny access otherwise
     abort(403, 'Unauthorized');
 }
 

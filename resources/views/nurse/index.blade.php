@@ -34,7 +34,7 @@
             </thead>
 
             <tbody class="text-gray-800 text-sm">
-                @foreach ($nurse as $nurse)
+                @foreach ($nurses as $nurse)
                 <tr class="border-b hover:bg-blue-50/50 transition">
 
                     <td class="py-4 px-4">{{ $nurse->employee_number }}</td>
