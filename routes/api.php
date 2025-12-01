@@ -29,6 +29,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Logout endpoint
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // Update profile endpoint - Users can update their own profile
+    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
+    Route::patch('/user/profile', [AuthController::class, 'updateProfile']);
+
     // Registration endpoint - ONLY accessible by root_user
     // Root user can create other users (admission, nurse, doctor)
     // Note: Rate limiting not needed here since endpoint requires authentication + root_user role
@@ -37,7 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User management endpoints - ONLY accessible by root_user
     Route::middleware('root_user')->group(function () {
-        // List all users
+        // List users (active by default, add ?deleted=true for deleted users)
         Route::get('/users', [AuthController::class, 'index']);
+
+        // Send password reset link to a user
+        Route::post('/users/forgot-password', [AuthController::class, 'sendPasswordResetLink']);
+
+        // Delete a user (soft delete)
+        Route::delete('/users/{id}', [AuthController::class, 'destroy']);
+
+        // Restore a soft-deleted user
+        Route::post('/users/{id}/restore', [AuthController::class, 'restore']);
     });
 });

@@ -214,17 +214,9 @@
                             <!-- Doctor Assigned -->
                             <div class="col-md-6">
                                 <label for="doctor" class="form-label fw-semibold">Doctor Assigned</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light">
-                                        <i class="fas fa-user-md text-muted"></i>
-                                    </span>
-                                    <select class="form-select @error('doctor') is-invalid @enderror" id="doctor" name="doctor">
-                                        <option value="">Select Doctor</option>
-                                        <option value="Dr. Smith" {{ ($patient->doctor ?? '') == 'Dr. Smith' ? 'selected' : '' }}>Dr. Smith</option>
-                                        <option value="Dr. Johnson" {{ ($patient->doctor ?? '') == 'Dr. Johnson' ? 'selected' : '' }}>Dr. Johnson</option>
-                                        <option value="Dr. Williams" {{ ($patient->doctor ?? '') == 'Dr. Williams' ? 'selected' : '' }}>Dr. Williams</option>
-                                        <option value="Dr. Brown" {{ ($patient->doctor ?? '') == 'Dr. Brown' ? 'selected' : '' }}>Dr. Brown</option>
-                                    </select>
+                                <div class="md:col-span-2">
+
+                                <input type="text" value="{{ $patient->doctor->name ?? 'Not Assigned' }}" class="w-full border border-gray-300 rounded px-3 py-2">
                                 </div>
                                 @error('doctor')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
