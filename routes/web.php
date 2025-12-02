@@ -19,11 +19,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Users CRUD
     Route::resource('users', UserController::class);
 
-    // Doctors CRUD
-    Route::resource('doctor', DoctorController::class);
+    // // Doctors CRUD
+    // Route::resource('doctor', DoctorController::class);
 
-    // Nurses CRUD
-    Route::resource('nurse', NurseController::class);
+    // // Nurses CRUD
+    // Route::resource('nurse', NurseController::class);
 
     // Admin: Full Patient CRUD (except index + show)
     Route::resource('patients', PatientController::class)

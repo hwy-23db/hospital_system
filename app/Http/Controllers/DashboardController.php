@@ -20,10 +20,10 @@ class DashboardController extends Controller
         $todayPatients = Patient::whereDate('created_at', Carbon::today())->count();
 
        //doctor count
-       $doctorCount = Doctor::count();
+    //    $doctorCount = Doctor::count();
 
-       //nurse count
-        $nurseCount = Nurse::count();
+    //    //nurse count
+    //     $nurseCount = Nurse::count();
 
         // Users count (optional)
         $usersCount = User::count();
@@ -44,8 +44,8 @@ class DashboardController extends Controller
             'usersCount',
             'months',
             'monthlyPatients',
-            'doctorCount',
-            'nurseCount',
+            // 'doctorCount',
+            // 'nurseCount',
         ));
     }
 }

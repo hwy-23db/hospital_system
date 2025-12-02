@@ -57,25 +57,20 @@ class Patient extends Model
         'nurse_id',
     ];
 
-    /**
-     * Relationship: Patient belongs to Doctor
-     */
+
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class);
+        return $this->belongsTo(User::class, 'doctor_id');
     }
 
-    /**
-     * Relationship: Patient belongs to Nurse
-     */
     public function nurse()
     {
-        return $this->belongsTo(Nurse::class);
+        return $this->belongsTo(User::class, 'nurse_id');
     }
 
-    public function treatments()
-{
-    return $this->hasMany(TreatmentRecord::class);
-}
+       public function treatments()
+    {
+        return $this->hasMany(TreatmentRecord::class);
+    }
 
 }

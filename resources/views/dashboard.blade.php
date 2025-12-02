@@ -112,7 +112,7 @@
                 </a>
             </div>
 
-            <!-- New Today -->
+            {{-- <!-- New Today -->
             <div class="col-lg-3 col-md-6">
                 <a href="{{ route('doctor.index') }}" class="card-link">
                     <div class="card modern-card card-total-patients">
@@ -143,7 +143,7 @@
                         </div>
                     </div>
                 </a>
-            </div>
+            </div> --}}
 
            <div class="col-lg-3 col-md-6">
                 <a href="{{ route('users.index') }}" class="card-link">

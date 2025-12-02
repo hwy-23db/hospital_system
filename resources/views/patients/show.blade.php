@@ -60,6 +60,22 @@
                     <label class="block text-gray-600 font-medium mb-1">Status</label>
                     <input type="text" value="{{ $patient->discharge_status ?? '' }}" class="w-full border border-gray-300 rounded px-3 py-2">
                 </div>
+                <div>
+                    <label class="block text-gray-600 font-medium mb-1">Case Of Death</label>
+                    <input type="text" value="{{ $patient->cause_of_death ?? '' }}" class="w-full border border-gray-300 rounded px-3 py-2">
+                </div>
+                <div class="col-md-12">
+                <label class="block text-gray-600 font-medium mb-1">Treatment Records</label>
+                {{-- <div class="border border-gray-300 rounded px-3 py-2 bg-light w-full"> --}}
+                    <ul class="list-group w-full border border-gray-300 rounded px-3 py-2">
+                        @forelse($patient->treatments ?? [] as $record)
+                            <li class="list-group-item">{{ $record->treatment_type }}</li>
+                        @empty
+                            <li class="list-group-item text-muted">No treatment records yet.</li>
+                        @endforelse
+                    </ul>
+                {{-- </div> --}}
+                </div>
                 <div class="md:col-span-2">
                     <label class="block text-gray-600 font-medium mb-1">Doctor Assigned</label>
                     <input type="text" value="{{ $patient->doctor->name ?? 'Not Assigned' }}" class="w-full border border-gray-300 rounded px-3 py-2">
@@ -68,11 +84,6 @@
                     <label class="block text-gray-600 font-medium mb-1">Nurse Assigned</label>
                     <input type="text" value="{{ $patient->nurse->name ?? 'Not Assigned' }}" class="w-full border border-gray-300 rounded px-3 py-2">
                 </div>
-                <div class="md:col-span-2">
-                    <label class="block text-gray-600 font-medium mb-1">Treatment Record</label>
-                    <textarea class="w-full border border-gray-300 rounded px-3 py-2" rows="4">{{ $patient->treatment_record ?? '' }}</textarea>
-                </div>
-            </div>
         </form>
     </div>
 

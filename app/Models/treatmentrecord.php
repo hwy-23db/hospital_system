@@ -12,17 +12,15 @@ class TreatmentRecord extends Model
     protected $fillable = [
         'patient_id',
         'doctor_id',
-        'treatment_date',
-        'notes',
+        'nurse_id',
+        'treatment_type',
+        'details',
+        'date',
     ];
 
+    // Link back to patient
     public function patient()
     {
         return $this->belongsTo(Patient::class);
-    }
-
-    public function doctor()
-    {
-        return $this->belongsTo(Doctor::class);
     }
 }

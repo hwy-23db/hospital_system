@@ -37,21 +37,30 @@ class User extends Authenticatable
     }
 
     /**
-     * Relationships to role-specific tables
+     * Helpers for role checks
      */
-    public function doctor()
+    public function isDoctor(): bool
     {
-        return $this->hasOne(Doctor::class);
+        return $this->role === 'doctor';
     }
 
-    public function nurse()
+    public function isNurse(): bool
     {
-        return $this->hasOne(Nurse::class);
+        return $this->role === 'nurse';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isRoot(): bool
+    {
+        return $this->role === 'root_user';
     }
 
     /**
-     * Boot the model.
-     * Prevent creating multiple root_user accounts.
+     * Boot: Prevent duplicate root_user
      */
     protected static function boot(): void
     {
@@ -59,17 +68,15 @@ class User extends Authenticatable
 
         static::creating(function ($user) {
             if ($user->role === 'root_user') {
-                $existingRootUser = static::where('role', 'root_user')
-                    ->where('id', '!=', $user->id)
-                    ->exists();
+                $existingRootUser = static::where('role', 'root_user')->exists();
 
                 if ($existingRootUser) {
-                    Log::warning('Attempt to create duplicate root_user blocked', [
+                    Log::warning("Duplicate root_user creation blocked", [
                         'email' => $user->email,
                     ]);
 
                     throw ValidationException::withMessages([
-                        'role' => ['Root user already exists. Only one root user is allowed.'],
+                        'role' => ['Only one root user is allowed.'],
                     ]);
                 }
             }
@@ -82,13 +89,13 @@ class User extends Authenticatable
                     ->exists();
 
                 if ($existingRootUser) {
-                    Log::warning('Attempt to change role to root_user blocked', [
+                    Log::warning("Changing role to root_user blocked", [
                         'user_id' => $user->id,
                         'email' => $user->email,
                     ]);
 
                     throw ValidationException::withMessages([
-                        'role' => ['Root user already exists. Only one root user is allowed.'],
+                        'role' => ['Only one root user is allowed.'],
                     ]);
                 }
             }
@@ -96,10 +103,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     * @return void
+     * Send password reset
      */
     public function sendPasswordResetNotification($token): void
     {

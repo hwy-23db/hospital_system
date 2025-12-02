@@ -54,8 +54,8 @@ return new class extends Migration
             $table->string('doctor_name')->nullable();
             $table->string('doctor_signature')->nullable();
             $table->timestamps();
-            $table->unsignedBigInteger('doctor_id')->nullable();
-            $table->unsignedBigInteger('nurse_id')->nullable();
+            // $table->unsignedBigInteger('doctor_id')->nullable();
+            // $table->unsignedBigInteger('nurse_id')->nullable();
         });
     }
 

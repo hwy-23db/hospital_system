@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Patient;
-use App\Models\Doctor;
-use App\Models\Nurse;
-use App\Models\Treatment;
+use App\Models\TreatmentRecord;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PatientController extends Controller
 {
@@ -21,15 +19,15 @@ class PatientController extends Controller
         if ($user->role === 'admin') {
             $patients = Patient::with(['doctor', 'nurse'])->latest()->paginate(10);
         } elseif ($user->role === 'doctor') {
-            $doctor = Doctor::whereRaw('LOWER(email) = ?', [strtolower($user->email)])->first();
-            $patients = $doctor
-                ? Patient::with(['doctor', 'nurse'])->where('doctor_id', $doctor->id)->latest()->paginate(10)
-                : collect();
+            $patients = Patient::with(['doctor', 'nurse'])
+                ->where('doctor_id', $user->id)
+                ->latest()
+                ->paginate(10);
         } elseif ($user->role === 'nurse') {
-            $nurse = Nurse::whereRaw('LOWER(email) = ?', [strtolower($user->email)])->first();
-            $patients = $nurse
-                ? Patient::with(['doctor', 'nurse'])->where('nurse_id', $nurse->id)->latest()->paginate(10)
-                : collect();
+            $patients = Patient::with(['doctor', 'nurse'])
+                ->where('nurse_id', $user->id)
+                ->latest()
+                ->paginate(10);
         } else {
             $patients = collect();
         }
@@ -44,8 +42,8 @@ class PatientController extends Controller
     {
         $this->authorizeRole('admin');
 
-        $doctors = Doctor::all();
-        $nurses  = Nurse::all();
+        $doctors = User::where('role', 'doctor')->get();
+        $nurses  = User::where('role', 'nurse')->get();
 
         return view('patients.create', compact('doctors', 'nurses'));
     }
@@ -54,21 +52,26 @@ class PatientController extends Controller
      * Store a new patient (admin only)
      */
     public function store(Request $request)
-    {
-        $this->authorizeRole('admin');
+{
+    $this->authorizeRole('admin');
 
-        $validated = $this->validatePatient($request);
+    $validated = $this->validatePatient($request);
 
-        $patient = Patient::create($validated);
+    // Create patient
+    $patient = Patient::create($validated);
 
-        if ($request->has('treatments')) {
-            foreach ($request->treatments as $data) {
-                $patient->treatments()->create($data);
-            }
-        }
-
-        return redirect()->route('patients.index')->with('success', 'Patient registered successfully.');
+    // Store treatment record with doctor and nurse
+    if ($request->filled('treatment_type') && $request->doctor_id && $request->nurse_id) {
+        $patient->treatments()->create([
+            'patient_id'     => $patient->id,
+            'treatment_type' => $request->treatment_type,
+            'doctor_id'      => $request->doctor_id,
+            'nurse_id'       => $request->nurse_id,
+        ]);
     }
+
+    return redirect()->route('patients.index')->with('success', 'Patient registered successfully.');
+}
 
     /**
      * Show a patient (role-based access)
@@ -76,6 +79,9 @@ class PatientController extends Controller
     public function show(Patient $patient)
     {
         $this->authorizePatientAccess($patient);
+
+        $patient->load(['doctor', 'nurse', 'treatments']);
+
         return view('patients.show', compact('patient'));
     }
 
@@ -86,8 +92,8 @@ class PatientController extends Controller
     {
         $this->authorizePatientAccess($patient);
 
-        $doctors = Doctor::all();
-        $nurses  = Nurse::all();
+        $doctors = User::where('role', 'doctor')->get();
+        $nurses  = User::where('role', 'nurse')->get();
         $patient->load('treatments');
 
         return view('patients.edit', compact('patient', 'doctors', 'nurses'));
@@ -106,7 +112,7 @@ class PatientController extends Controller
         // Update existing treatments
         if ($request->has('treatments')) {
             foreach ($request->treatments as $id => $data) {
-                $treatment = Treatment::find($id);
+                $treatment = TreatmentRecord::find($id);
                 if ($treatment) $treatment->update($data);
             }
         }
@@ -141,6 +147,8 @@ class PatientController extends Controller
     {
         return $request->validate([
             'name' => 'required|string|max:255',
+            'doctor_id' => 'nullable|exists:users,id',
+            'nurse_id' => 'nullable|exists:users,id',
             'sex' => 'nullable|string|max:10',
             'age' => 'nullable|integer|min:0|max:150',
             'dob' => 'nullable|date',
@@ -182,35 +190,22 @@ class PatientController extends Controller
             'doctor_name' => 'nullable|string|max:255',
             'doctor_signature' => 'nullable|string|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'doctor_id' => 'nullable|exists:doctors,id',
-            'nurse_id' => 'nullable|exists:nurses,id',
         ]);
     }
 
     /**
      * Check if the current user can access the patient
      */
-  protected function authorizePatientAccess(Patient $patient)
-{
-    $user = auth()->user();
+    protected function authorizePatientAccess(Patient $patient)
+    {
+        $user = auth()->user();
 
-    // Admin can access everything
-    if ($user->role === 'admin') return true;
+        if ($user->role === 'admin') return true;
+        if ($user->role === 'doctor' && $patient->doctor_id === $user->id) return true;
+        if ($user->role === 'nurse' && $patient->nurse_id === $user->id) return true;
 
-    // Doctor can access their assigned patients
-    if ($user->role === 'doctor' && $patient->doctor && $patient->doctor->email === $user->email) {
-        return true;
+        abort(403, 'Unauthorized');
     }
-
-    // Nurse can access their assigned patients
-    if ($user->role === 'nurse' && $patient->nurse && $patient->nurse->email === $user->email) {
-        return true;
-    }
-
-    // Deny access otherwise
-    abort(403, 'Unauthorized');
-}
-
 
     /**
      * Check if the user has a specific role
@@ -221,4 +216,5 @@ class PatientController extends Controller
             abort(403, 'Unauthorized');
         }
     }
+
 }
