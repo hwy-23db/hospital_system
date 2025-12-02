@@ -16,9 +16,11 @@ class PatientController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'admin') {
+        if ($user->role === 'root_user') {
             $patients = Patient::with(['doctor', 'nurse'])->latest()->paginate(10);
-        } elseif ($user->role === 'doctor') {
+        }elseif ($user->role === 'receptionist'){
+            $patients = Patient::with(['doctor', 'nurse'])->latest()->paginate(10);
+        }elseif ($user->role === 'doctor') {
             $patients = Patient::with(['doctor', 'nurse'])
                 ->where('doctor_id', $user->id)
                 ->latest()
@@ -36,11 +38,11 @@ class PatientController extends Controller
     }
 
     /**
-     * Show form to create a new patient (admin only)
+     * Show form to create a new patient (root_user & receptionist)
      */
     public function create()
     {
-        $this->authorizeRole('admin');
+        $this->authorizeRole(['root_user', 'receptionist']);
 
         $doctors = User::where('role', 'doctor')->get();
         $nurses  = User::where('role', 'nurse')->get();
@@ -49,29 +51,27 @@ class PatientController extends Controller
     }
 
     /**
-     * Store a new patient (admin only)
+     * Store a new patient (root_user & receptionist)
      */
     public function store(Request $request)
-{
-    $this->authorizeRole('admin');
+    {
+        $this->authorizeRole(['root_user', 'receptionist']);
 
-    $validated = $this->validatePatient($request);
+        $validated = $this->validatePatient($request);
 
-    // Create patient
-    $patient = Patient::create($validated);
+        $patient = Patient::create($validated);
 
-    // Store treatment record with doctor and nurse
-    if ($request->filled('treatment_type') && $request->doctor_id && $request->nurse_id) {
-        $patient->treatments()->create([
-            'patient_id'     => $patient->id,
-            'treatment_type' => $request->treatment_type,
-            'doctor_id'      => $request->doctor_id,
-            'nurse_id'       => $request->nurse_id,
-        ]);
+        if ($request->filled('treatment_type') && $request->doctor_id && $request->nurse_id) {
+            $patient->treatments()->create([
+                'patient_id'     => $patient->id,
+                'treatment_type' => $request->treatment_type,
+                'doctor_id'      => $request->doctor_id,
+                'nurse_id'       => $request->nurse_id,
+            ]);
+        }
+
+        return redirect()->route('patients.index')->with('success', 'Patient registered successfully.');
     }
-
-    return redirect()->route('patients.index')->with('success', 'Patient registered successfully.');
-}
 
     /**
      * Show a patient (role-based access)
@@ -86,11 +86,11 @@ class PatientController extends Controller
     }
 
     /**
-     * Show the edit form (role-based access)
+     * Show the edit form (doctor for assigned patients & root_user)
      */
     public function edit(Patient $patient)
     {
-        $this->authorizePatientAccess($patient);
+        $this->authorizePatientAccess($patient, ['edit']);
 
         $doctors = User::where('role', 'doctor')->get();
         $nurses  = User::where('role', 'nurse')->get();
@@ -100,11 +100,11 @@ class PatientController extends Controller
     }
 
     /**
-     * Update a patient (role-based access)
+     * Update a patient (doctor for assigned patients & root_user)
      */
     public function update(Request $request, Patient $patient)
     {
-        $this->authorizePatientAccess($patient);
+        $this->authorizePatientAccess($patient, ['update']);
 
         $validated = $this->validatePatient($request);
         $patient->update($validated);
@@ -129,11 +129,11 @@ class PatientController extends Controller
     }
 
     /**
-     * Delete a patient (admin only)
+     * Delete a patient (root_user only)
      */
     public function destroy(Patient $patient)
     {
-        $this->authorizeRole('admin');
+        $this->authorizeRole('root_user');
 
         $patient->delete();
 
@@ -194,27 +194,39 @@ class PatientController extends Controller
     }
 
     /**
-     * Check if the current user can access the patient
+     * Authorize actions for specific patient based on role
      */
-    protected function authorizePatientAccess(Patient $patient)
+    protected function authorizePatientAccess(Patient $patient, array $actions = ['view'])
     {
         $user = auth()->user();
 
-        if ($user->role === 'admin') return true;
-        if ($user->role === 'doctor' && $patient->doctor_id === $user->id) return true;
-        if ($user->role === 'nurse' && $patient->nurse_id === $user->id) return true;
-
-        abort(403, 'Unauthorized');
-    }
-
-    /**
-     * Check if the user has a specific role
-     */
-    protected function authorizeRole(string $role)
-    {
-        if (auth()->user()->role !== $role) {
-            abort(403, 'Unauthorized');
+        switch ($user->role) {
+            case 'root_user':
+                return true; // full access
+            case 'receptionist':
+                if ($actions === ['view'] || request()->isMethod('GET')) return true;
+                abort(403, 'Unauthorized');
+            case 'doctor':
+                if ($patient->doctor_id === $user->id) {
+                    if (in_array('edit', $actions) || in_array('update', $actions)) return true;
+                    if (in_array('view', $actions) || request()->isMethod('GET')) return true;
+                }
+                abort(403, 'Unauthorized');
+            case 'nurse':
+                if ($patient->nurse_id === $user->id && request()->isMethod('GET')) return true;
+                abort(403, 'Unauthorized');
+            default:
+                abort(403, 'Unauthorized');
         }
     }
 
+    /**
+     * Authorize based on role(s)
+     */
+    protected function authorizeRole(array|string $roles)
+    {
+        $userRole = auth()->user()->role;
+        if (is_string($roles)) $roles = [$roles];
+        if (!in_array($userRole, $roles)) abort(403, 'Unauthorized');
+    }
 }

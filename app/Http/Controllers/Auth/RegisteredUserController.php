@@ -14,22 +14,42 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
+class ProfileController extends Controller
+{
+    public function edit()
+    {
+        return view('profile.edit'); // create this blade file
+    }
+
+    public function update(Request $request)
+    {
+        $request->user()->update($request->only('name', 'email'));
+        return redirect()->route('profile.edit')->with('success', 'Profile updated!');
+    }
+}
+
 class RegisteredUserController extends Controller
 {
-    // Show registration form
+    /**
+     * Display the registration view.
+     */
     public function create(): View
     {
         return view('auth.register');
     }
 
-    // Handle registration
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => 'required|in:admin,doctor,nurse',
+            'role' => 'required|in:root_user,receptionist,doctor,nurse',
         ]);
 
         // Create user
@@ -61,7 +81,12 @@ class RegisteredUserController extends Controller
         // Log the user in
         Auth::login($user);
 
-        // Redirect to dashboard
-        return redirect()->route('dashboard');
+         return match ($user->role) {
+            'root_user' =>redirect()->route('dashboard'),
+            'receptionist' => redirect()->route('dashboard'),
+            'doctor' => redirect()->route('dashboard'),
+            'nurse' => redirect()->route('dashboard'),
+            default => redirect('/'), // fallback
+        };
     }
 }

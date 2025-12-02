@@ -10,7 +10,7 @@
         👤 User Records
     </h1>
 
-    @if(auth()->user()->role === 'admin')
+    @if(auth()->user()->role === 'root_user')
     <a href="{{ route('users.create') }}"
         class="bg-blue-600 hover:bg-blue-700 text-dark px-4 py-2 rounded-lg shadow text-sm">
         + Add User
@@ -47,7 +47,7 @@
                     <td class="py-4 px-4">{{ $user->role }}</td>
 
                     <td class="py-4 px-4 flex gap-2">
-                        @if(auth()->user()->role === 'admin')
+                        @if(auth()->user()->role === 'root_user')
                         <a href="{{ route('users.edit', $user->id) }}"
                             class="bg-blue-600 hover:bg-blue-700 text-dark px-3 py-1 rounded-lg shadow text-xs flex items-center gap-1">
                             ✏️ Edit

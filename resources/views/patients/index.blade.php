@@ -9,7 +9,14 @@
             🏥 Patient Records
         </h1>
 
-        @if(auth()->user()->role === 'admin')
+        @if(auth()->user()->role === 'root_user')
+        <a href="{{ route('patients.create') }}"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow text-sm">
+            + Add Patient
+        </a>
+        @endif
+
+        @if(auth()->user()->role === 'receptionist')
         <a href="{{ route('patients.create') }}"
             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow text-sm">
             + Add Patient
@@ -42,20 +49,31 @@
                             $canEdit = false;
                             $canView = false;
 
-                            if ($user->role === 'admin') {
+                            if ($user->role === 'root_user') {
+                                // root user can do everything
                                 $canEdit = true;
                                 $canView = true;
-                            } elseif ($user->role === 'nurse') {
-                                if ($patient->nurse_id == $user->id) {
-                                    $canEdit = true;
-                                    $canView = true;
-                                }
+
+                            } elseif ($user->role === 'receptionist') {
+                                // receptionist can only view
+                                $canView = true;
+
                             } elseif ($user->role === 'doctor') {
+                                // doctor can view + edit ONLY their patients
                                 if ($patient->doctor_id == $user->id) {
                                     $canView = true;
+                                    $canEdit = true;
+                                }
+
+                            } elseif ($user->role === 'nurse') {
+                                // nurse can view + edit ONLY their patients
+                                if ($patient->nurse_id == $user->id) {
+                                    $canView = true;
+                                    $canEdit = true;
                                 }
                             }
                         @endphp
+
 
                         @if($canView)
                         <tr class="border-b hover:bg-blue-50/50 transition">
@@ -103,7 +121,7 @@
                                     </a>
                                 @endif
 
-                                @if($user->role === 'admin')
+                                @if($user->role === 'root_user')
                                     <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" onsubmit="return confirm('Delete this patient?')">
                                         @csrf
                                         @method('DELETE')

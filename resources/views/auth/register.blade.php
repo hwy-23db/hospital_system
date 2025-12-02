@@ -42,7 +42,8 @@
         <div class="mt-4">
            <label for="role">Role:</label>
             <select name="role" id="role" required>
-                <option value="admin">Admin</option>
+                <option value="root_user">Root Administrator</option>
+                <option value="receptionist">Receptionist</option>
                 <option value="doctor">Doctor</option>
                 <option value="nurse" selected>Nurse</option>
             </select>

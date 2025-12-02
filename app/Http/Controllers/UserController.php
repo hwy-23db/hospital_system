@@ -7,19 +7,30 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    private function authorizeRoot()
+    {
+        if (auth()->user()->role !== 'root_user') {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     public function index()
     {
+        $this->authorizeRoot();
         $users = User::latest()->paginate(10);
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
+        $this->authorizeRoot();
         return view('users.create');
     }
 
     public function store(Request $request)
     {
+        $this->authorizeRoot();
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -31,7 +42,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            'password' => bcrypt($request->password), // secure hashing
+            'password' => bcrypt($request->password),
         ]);
 
         return redirect()->route('users.index')
@@ -40,11 +51,14 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $this->authorizeRoot();
         return view('users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
+        $this->authorizeRoot();
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -52,12 +66,10 @@ class UserController extends Controller
             'password' => 'nullable|min:6|confirmed',
         ]);
 
-    // Update fields
         $user->name = $request->name;
         $user->email = $request->email;
         $user->role = $request->role;
 
-    // Update password only if filled
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);
         }
@@ -70,6 +82,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $this->authorizeRoot();
         $user->delete();
 
         return redirect()->route('users.index')
