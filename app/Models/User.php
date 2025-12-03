@@ -15,11 +15,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -27,21 +22,11 @@ class User extends Authenticatable
         'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -52,47 +37,65 @@ class User extends Authenticatable
     }
 
     /**
-     * Boot the model.
-     * Prevent creating multiple root_user accounts.
+     * Helpers for role checks
+     */
+    public function isDoctor(): bool
+    {
+        return $this->role === 'doctor';
+    }
+
+    public function isNurse(): bool
+    {
+        return $this->role === 'nurse';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isRoot(): bool
+    {
+        return $this->role === 'root_user';
+    }
+
+    /**
+     * Boot: Prevent duplicate root_user
      */
     protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function ($user) {
-            // If trying to create a root_user, check if one already exists
             if ($user->role === 'root_user') {
-                $existingRootUser = static::where('role', 'root_user')
-                    ->where('id', '!=', $user->id)
-                    ->exists();
+                $existingRootUser = static::where('role', 'root_user')->exists();
 
                 if ($existingRootUser) {
-                    Log::warning('Attempt to create duplicate root_user blocked', [
+                    Log::warning("Duplicate root_user creation blocked", [
                         'email' => $user->email,
                     ]);
 
                     throw ValidationException::withMessages([
-                        'role' => ['Root user already exists. Only one root user is allowed in the system.'],
+                        'role' => ['Only one root user is allowed.'],
                     ]);
                 }
             }
         });
 
         static::updating(function ($user) {
-            // Prevent changing a non-root user to root_user if one already exists
             if ($user->isDirty('role') && $user->role === 'root_user') {
                 $existingRootUser = static::where('role', 'root_user')
                     ->where('id', '!=', $user->id)
                     ->exists();
 
                 if ($existingRootUser) {
-                    Log::warning('Attempt to change role to root_user blocked - root user already exists', [
+                    Log::warning("Changing role to root_user blocked", [
                         'user_id' => $user->id,
                         'email' => $user->email,
                     ]);
 
                     throw ValidationException::withMessages([
-                        'role' => ['Root user already exists. Only one root user is allowed in the system.'],
+                        'role' => ['Only one root user is allowed.'],
                     ]);
                 }
             }
@@ -100,10 +103,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     * @return void
+     * Send password reset
      */
     public function sendPasswordResetNotification($token): void
     {

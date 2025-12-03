@@ -13,7 +13,7 @@ class AdminController extends Controller
     // Show the form to create a new user
     public function showCreateUserForm()
     {
-        return view('admin.create-user'); // your blade form for admin
+        return view('root_user.create-user'); // your blade form for admin
     }
 
     // Handle form submission

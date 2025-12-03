@@ -40,6 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'doctor' => [               // <-- new guard
+            'driver' => 'session',
+            'provider' => 'doctors',
+        ],
     ],
 
     /*
@@ -64,6 +69,11 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
+
+        'doctors' => [             // <-- new provider
+            'driver' => 'eloquent',
+            'model' => App\Models\Doctor::class,
+    ],
 
         // 'users' => [
         //     'driver' => 'database',
