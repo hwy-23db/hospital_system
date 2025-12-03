@@ -139,3 +139,6 @@ SANCTUM_TOKEN_EXPIRATION=1440  # Token expiration in minutes (24 hours)
 The authentication system now implements industry-standard security practices suitable for a hospital management system handling sensitive patient data. All authentication endpoints are protected against common attack vectors including brute force, SQL injection, XSS, and information disclosure.
 
 
+
+
+
