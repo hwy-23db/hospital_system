@@ -537,23 +537,62 @@ class AdmissionController extends Controller
             'attending_doctor_name' => $user->name,
         ]);
 
+        // CRITICAL: Close all other active admissions for this patient
+        // IMPORTANT: We do NOT mark them as "deceased" - only the admission where death
+        // was confirmed gets status="deceased". Other admissions are closed as "discharged"
+        // with discharge_status="dead" so we know which admission the patient actually died in.
+        $otherActiveAdmissions = $admission->patient->admissions()
+            ->where('id', '!=', $admission->id) // Exclude the admission where death was confirmed
+            ->where('status', 'admitted')
+            ->get();
+
+        $closedAdmissions = [];
+        foreach ($otherActiveAdmissions as $otherAdmission) {
+            $otherAdmission->update([
+                'status' => 'discharged', // NOT "deceased" - only the death admission is "deceased"
+                'discharge_date' => now()->toDateString(),
+                'discharge_time' => now()->format('H:i'),
+                'discharge_type' => 'normal',
+                'discharge_status' => 'dead', // Indicates patient died, but not in this admission
+                'remarks' => 'Automatically closed due to patient death confirmed in admission ' . $admission->admission_number . '. Patient died in admission ' . $admission->admission_number . ', not in this admission.',
+            ]);
+            $closedAdmissions[] = [
+                'id' => $otherAdmission->id,
+                'admission_number' => $otherAdmission->admission_number,
+                'admission_type' => $otherAdmission->admission_type,
+                'status' => 'discharged', // Closed, not deceased
+                'note' => 'Closed automatically - patient died in admission ' . $admission->admission_number,
+            ];
+        }
+
         Log::info('Patient death confirmed', [
             'admission_id' => $admission->id,
             'admission_number' => $admission->admission_number,
             'patient_id' => $admission->patient_id,
             'confirmed_by' => $user->id,
             'cause_of_death' => $request->cause_of_death,
+            'other_admissions_closed' => count($closedAdmissions),
+            'closed_admissions' => $closedAdmissions,
             'ip' => $request->ip(),
         ]);
 
-        return response()->json([
+        $response = [
             'message' => 'Patient death confirmed',
             'data' => $admission->fresh()->load([
                 'patient:id,name,nrc_number',
                 'doctor:id,name,email',
                 'nurse:id,name,email'
             ]),
-        ]);
+        ];
+
+        // Include information about other admissions that were automatically closed
+        if (count($closedAdmissions) > 0) {
+            $response['other_admissions_closed'] = count($closedAdmissions);
+            $response['closed_admissions'] = $closedAdmissions;
+            $response['note'] = 'Other active admissions have been automatically closed (status: discharged, discharge_status: dead). Only the admission where death was confirmed has status: deceased.';
+        }
+
+        return response()->json($response);
     }
 
     /**
@@ -711,6 +750,29 @@ class AdmissionController extends Controller
         if ($admission->status !== 'admitted') {
             return response()->json([
                 'message' => 'Cannot convert a closed outpatient visit. Current status: ' . $admission->status
+            ], 400);
+        }
+
+        // CRITICAL: Check if patient already has an active INPATIENT admission
+        // Only ONE active inpatient is allowed per patient
+        $activeInpatient = $admission->patient->admissions()
+            ->where('id', '!=', $admission->id) // Exclude the current admission being converted
+            ->where('status', 'admitted')
+            ->where('admission_type', 'inpatient')
+            ->first();
+
+        if ($activeInpatient) {
+            return response()->json([
+                'message' => 'Cannot convert to inpatient. Patient already has an active inpatient admission.',
+                'current_inpatient' => [
+                    'id' => $activeInpatient->id,
+                    'admission_number' => $activeInpatient->admission_number,
+                    'admission_date' => $activeInpatient->admission_date,
+                    'admitted_for' => $activeInpatient->admitted_for,
+                    'ward' => $activeInpatient->ward,
+                    'bed_number' => $activeInpatient->bed_number,
+                ],
+                'note' => 'Please discharge the existing inpatient admission first, or convert this outpatient visit after the current inpatient is closed.'
             ], 400);
         }
 

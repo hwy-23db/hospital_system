@@ -1354,7 +1354,234 @@ POST /api/patients/{id}/admit
 
 **Authorization:** Role-based
 
-Returns full admission details with all treatment records.
+| Role        | Access                                               |
+| ----------- | ---------------------------------------------------- |
+| `root_user` | ✅ All admissions                                    |
+| `admission` | ✅ All admissions                                    |
+| `doctor`    | ✅ Only admissions where they are assigned as doctor |
+| `nurse`     | ✅ Only admissions where they are assigned as nurse  |
+
+Returns full admission details with patient information, assigned staff, and all treatment records.
+
+#### Success Response (200 OK)
+
+```json
+{
+    "message": "Admission retrieved successfully",
+    "data": {
+        "id": 5,
+        "patient_id": 1,
+        "admission_number": "ADM-2024-000005",
+        "admission_type": "inpatient",
+        "admission_date": "2024-12-03",
+        "admission_time": "14:30:00",
+        "present_address": "123 Main Street, Yangon",
+        "admitted_for": "Chest pain and shortness of breath",
+        "referred_by": "Dr. John Referrer",
+        "police_case": "no",
+        "service": "Cardiology",
+        "ward": "Cardiology Ward A",
+        "bed_number": "12",
+        "medical_officer": "Dr. Medical Officer",
+        "initial_diagnosis": "Suspected myocardial infarction. Patient presents with chest pain radiating to left arm.",
+        "drug_allergy_noted": "Penicillin - causes rash",
+        "remarks": "Patient arrived via ambulance. Family notified.",
+        "discharge_date": null,
+        "discharge_time": null,
+        "discharge_diagnosis": null,
+        "other_diagnosis": null,
+        "external_cause_of_injury": null,
+        "clinician_summary": null,
+        "surgical_procedure": null,
+        "discharge_type": null,
+        "discharge_status": null,
+        "discharge_instructions": null,
+        "follow_up_instructions": null,
+        "follow_up_date": null,
+        "cause_of_death": null,
+        "autopsy": null,
+        "time_of_death": null,
+        "certified_by": null,
+        "approved_by": null,
+        "attending_doctor_name": null,
+        "attending_doctor_signature": null,
+        "status": "admitted",
+        "doctor_id": 2,
+        "nurse_id": 3,
+        "length_of_stay": 5,
+        "created_at": "2024-12-03T14:30:00.000000Z",
+        "updated_at": "2024-12-05T09:15:00.000000Z",
+        "patient": {
+            "id": 1,
+            "name": "John Patient",
+            "nrc_number": "12/ABC(N)123456",
+            "sex": "male",
+            "age": 45,
+            "dob": "1979-05-15",
+            "contact_phone": "09123456789",
+            "permanent_address": "456 Permanent Street, Yangon",
+            "marital_status": "married",
+            "ethnic_group": "Bamar",
+            "religion": "Buddhist",
+            "occupation": "Engineer",
+            "created_at": "2024-11-01T10:00:00.000000Z",
+            "updated_at": "2024-12-03T14:30:00.000000Z"
+        },
+        "doctor": {
+            "id": 2,
+            "name": "Dr. Smith",
+            "email": "dr.smith@hospital.com"
+        },
+        "nurse": {
+            "id": 3,
+            "name": "Nurse Jane",
+            "email": "nurse.jane@hospital.com"
+        },
+        "treatment_records": [
+            {
+                "id": 12,
+                "admission_id": 5,
+                "patient_id": 1,
+                "treatment_type": "diagnostic",
+                "treatment_name": "ECG (Electrocardiogram)",
+                "description": "12-lead ECG to assess cardiac rhythm and detect abnormalities",
+                "notes": "Patient was calm during procedure",
+                "medications": null,
+                "dosage": null,
+                "treatment_date": "2024-12-03",
+                "treatment_time": "15:00:00",
+                "results": "Normal sinus rhythm. No acute ST elevation. Minor T-wave inversions in leads V4-V6.",
+                "findings": "No evidence of acute myocardial infarction. Possible old inferior wall changes.",
+                "outcome": "completed",
+                "pre_procedure_notes": null,
+                "post_procedure_notes": null,
+                "complications": null,
+                "doctor_id": 2,
+                "nurse_id": 3,
+                "created_at": "2024-12-03T15:00:00.000000Z",
+                "updated_at": "2024-12-03T15:00:00.000000Z",
+                "doctor": {
+                    "id": 2,
+                    "name": "Dr. Smith"
+                },
+                "nurse": {
+                    "id": 3,
+                    "name": "Nurse Jane"
+                }
+            },
+            {
+                "id": 13,
+                "admission_id": 5,
+                "patient_id": 1,
+                "treatment_type": "medication",
+                "treatment_name": "Aspirin 100mg",
+                "description": "Daily aspirin for cardiac protection",
+                "notes": "Patient has no history of GI bleeding",
+                "medications": "Aspirin 100mg, Atorvastatin 20mg",
+                "dosage": "Aspirin: 100mg once daily. Atorvastatin: 20mg once daily at bedtime.",
+                "treatment_date": "2024-12-03",
+                "treatment_time": "16:00:00",
+                "results": "Patient tolerating medications well. No adverse reactions.",
+                "findings": null,
+                "outcome": "ongoing",
+                "pre_procedure_notes": null,
+                "post_procedure_notes": null,
+                "complications": null,
+                "doctor_id": 2,
+                "nurse_id": 3,
+                "created_at": "2024-12-03T16:00:00.000000Z",
+                "updated_at": "2024-12-03T16:00:00.000000Z",
+                "doctor": {
+                    "id": 2,
+                    "name": "Dr. Smith"
+                },
+                "nurse": {
+                    "id": 3,
+                    "name": "Nurse Jane"
+                }
+            },
+            {
+                "id": 14,
+                "admission_id": 5,
+                "patient_id": 1,
+                "treatment_type": "diagnostic",
+                "treatment_name": "Complete Blood Count (CBC)",
+                "description": "Routine blood test to check blood cell counts",
+                "notes": "Fasting blood sample",
+                "medications": null,
+                "dosage": null,
+                "treatment_date": "2024-12-04",
+                "treatment_time": "08:00:00",
+                "results": "Hemoglobin: 14.2 g/dL (normal). White blood cell count: 7,500/μL (normal). Platelet count: 250,000/μL (normal).",
+                "findings": "All blood parameters within normal range. No signs of infection or anemia.",
+                "outcome": "completed",
+                "pre_procedure_notes": null,
+                "post_procedure_notes": null,
+                "complications": null,
+                "doctor_id": 2,
+                "nurse_id": 3,
+                "created_at": "2024-12-04T08:00:00.000000Z",
+                "updated_at": "2024-12-04T08:00:00.000000Z",
+                "doctor": {
+                    "id": 2,
+                    "name": "Dr. Smith"
+                },
+                "nurse": {
+                    "id": 3,
+                    "name": "Nurse Jane"
+                }
+            }
+        ]
+    }
+}
+```
+
+#### Response Fields Explanation
+
+**Admission Fields:**
+
+| Field                    | Type    | Description                               | Example Value                                               |
+| ------------------------ | ------- | ----------------------------------------- | ----------------------------------------------------------- |
+| `id`                     | integer | Admission ID                              | `5`                                                         |
+| `patient_id`             | integer | Patient ID                                | `1`                                                         |
+| `admission_number`       | string  | Unique admission number                   | `"ADM-2024-000005"`                                         |
+| `admission_type`         | string  | Type of admission                         | `"inpatient"` or `"outpatient"`                             |
+| `admission_date`         | date    | Date of admission                         | `"2024-12-03"`                                              |
+| `admission_time`         | time    | Time of admission                         | `"14:30:00"`                                                |
+| `status`                 | string  | Current status                            | `"admitted"`, `"discharged"`, `"deceased"`, `"transferred"` |
+| `admitted_for`           | string  | Reason for admission                      | `"Chest pain and shortness of breath"`                      |
+| `ward`                   | string  | Ward assignment (inpatient only)          | `"Cardiology Ward A"`                                       |
+| `bed_number`             | string  | Bed number (inpatient only)               | `"12"`                                                      |
+| `length_of_stay`         | integer | Number of days since admission (computed) | `5`                                                         |
+| `doctor_id` / `nurse_id` | integer | Assigned staff user IDs                   | `2`, `3`                                                    |
+| `discharge_date`         | date    | Discharge date (if discharged)            | `null` or `"2024-12-08"`                                    |
+| `cause_of_death`         | string  | Cause of death (if deceased)              | `null` or `"Cardiac arrest"`                                |
+| ...                      | ...     | (See full response for all fields)        | ...                                                         |
+
+**Nested Objects:**
+
+-   **`patient`**: Full patient demographic information
+-   **`doctor`**: Assigned doctor details (`id`, `name`, `email`)
+-   **`nurse`**: Assigned nurse details (`id`, `name`, `email`)
+-   **`treatment_records`**: Array of all treatment records for this admission, ordered by `treatment_date` (newest first)
+
+#### Error Responses
+
+**403 Forbidden - User not assigned to admission:**
+
+```json
+{
+    "message": "Unauthorized. You do not have access to this admission."
+}
+```
+
+**404 Not Found:**
+
+```json
+{
+    "message": "Admission not found."
+}
+```
 
 ### 20. Update Admission
 
@@ -1805,6 +2032,7 @@ Attempting to change these via `/update` will be **automatically blocked**.
 -   ❌ **Deceased patient admissions** - Returns error: "Cannot convert to inpatient. Patient is deceased."
 -   ❌ **Transferred admissions** - Returns error: "Cannot convert a closed outpatient visit. Current status: transferred"
 -   ❌ **Already inpatient admissions** - Returns error: "This admission is already an inpatient admission."
+-   ❌ **Patient has active inpatient** - Returns error: "Cannot convert to inpatient. Patient already has an active inpatient admission." (Only ONE active inpatient allowed per patient)
 -   ❌ **Old/historical admissions** - Any admission that is not currently active (status ≠ `admitted`)
 
 **Business Logic:**
@@ -1875,6 +2103,32 @@ Attempting to change these via `/update` will be **automatically blocked**.
 ```
 
 **Scenario:** Trying to convert an admission that is already marked as inpatient.
+
+**400 Bad Request** - Patient already has an active inpatient admission
+
+```json
+{
+    "message": "Cannot convert to inpatient. Patient already has an active inpatient admission.",
+    "current_inpatient": {
+        "id": 3,
+        "admission_number": "ADM-2024-000003",
+        "admission_date": "2024-12-01",
+        "admitted_for": "Pneumonia",
+        "ward": "Ward A",
+        "bed_number": "10"
+    },
+    "note": "Please discharge the existing inpatient admission first, or convert this outpatient visit after the current inpatient is closed."
+}
+```
+
+**Scenario:** Patient has an active inpatient admission (status: `admitted`, type: `inpatient`). Only ONE active inpatient is allowed per patient. You must discharge the existing inpatient first before converting the outpatient visit to inpatient.
+
+**Example:**
+
+-   Patient has Inpatient #1 (admitted on Dec 1, still active)
+-   Patient has Outpatient #2 (admitted on Dec 5, still active)
+-   Trying to convert Outpatient #2 to inpatient → ❌ BLOCKED
+-   Solution: Discharge Inpatient #1 first, then convert Outpatient #2
 
 **400 Bad Request** - Trying to convert transferred admission
 
