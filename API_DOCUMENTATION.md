@@ -2807,6 +2807,185 @@ Treatment records are linked to **specific admissions**.
 | `doctor`    | ✅ Only treatment records of their assigned admissions |
 | `nurse`     | ✅ Only treatment records of their assigned admissions |
 
+**Purpose:** Retrieve detailed information about a specific treatment record, including all treatment details, results, and assigned staff.
+
+#### Success Response (200 OK)
+
+```json
+{
+    "message": "Treatment record retrieved successfully",
+    "data": {
+        "id": 12,
+        "admission_id": 5,
+        "patient_id": 1,
+        "treatment_type": "diagnostic",
+        "treatment_name": "Complete Blood Count (CBC)",
+        "description": "Routine blood test to check blood cell counts, hemoglobin levels, and detect any abnormalities",
+        "notes": "Patient was fasting for 12 hours before test. No complications during blood draw.",
+        "medications": null,
+        "dosage": null,
+        "treatment_date": "2024-12-05",
+        "treatment_time": "09:30:00",
+        "results": "Hemoglobin: 14.2 g/dL (normal range: 12-16 g/dL). White blood cell count: 7,500/μL (normal range: 4,000-11,000/μL). Platelet count: 250,000/μL (normal range: 150,000-450,000/μL). Red blood cell count: 4.8 million/μL (normal range: 4.5-5.5 million/μL).",
+        "findings": "All blood parameters within normal range. No signs of infection, anemia, or bleeding disorders. Patient's blood counts are healthy.",
+        "outcome": "completed",
+        "pre_procedure_notes": "Patient informed about the procedure. Consent obtained. No known allergies to blood draw procedures.",
+        "post_procedure_notes": "Blood sample collected successfully. No bruising or bleeding at puncture site. Patient tolerated procedure well.",
+        "complications": null,
+        "doctor_id": 2,
+        "nurse_id": 3,
+        "created_at": "2024-12-05T09:30:00.000000Z",
+        "updated_at": "2024-12-05T10:15:00.000000Z",
+        "doctor": {
+            "id": 2,
+            "name": "Dr. Smith",
+            "email": "dr.smith@hospital.com"
+        },
+        "nurse": {
+            "id": 3,
+            "name": "Nurse Jane",
+            "email": "nurse.jane@hospital.com"
+        }
+    }
+}
+```
+
+#### Response Fields Explanation
+
+| Field                  | Type     | Description                                       | Example Value                                       |
+| ---------------------- | -------- | ------------------------------------------------- | --------------------------------------------------- |
+| `id`                   | integer  | Treatment record ID                               | `12`                                                |
+| `admission_id`         | integer  | Admission this treatment belongs to               | `5`                                                 |
+| `patient_id`           | integer  | Patient ID (denormalized for easier queries)      | `1`                                                 |
+| `treatment_type`       | string   | Type of treatment                                 | `"diagnostic"`, `"medication"`, `"surgery"`, etc.   |
+| `treatment_name`       | string   | Specific name of treatment                        | `"Complete Blood Count (CBC)"`                      |
+| `description`          | string   | Detailed description of treatment                 | `"Routine blood test..."`                           |
+| `notes`                | string   | General notes about the treatment                 | `"Patient was fasting..."`                          |
+| `medications`          | string   | Medications administered (if applicable)          | `"Aspirin 100mg, Atorvastatin 20mg"`                |
+| `dosage`               | string   | Dosage information (if applicable)                | `"Aspirin: 100mg once daily"`                       |
+| `treatment_date`       | date     | Date when treatment was performed                 | `"2024-12-05"`                                      |
+| `treatment_time`       | time     | Time when treatment was performed                 | `"09:30:00"`                                        |
+| `results`              | string   | Results of the treatment                          | `"Hemoglobin: 14.2 g/dL..."`                        |
+| `findings`             | string   | Medical findings from treatment                   | `"All blood parameters within normal range..."`     |
+| `outcome`              | string   | Treatment outcome status                          | `"completed"`, `"successful"`, `"pending"`, etc.    |
+| `pre_procedure_notes`  | string   | Notes before procedure (for surgeries/procedures) | `"Patient informed about the procedure..."`         |
+| `post_procedure_notes` | string   | Notes after procedure (for surgeries/procedures)  | `"Blood sample collected successfully..."`          |
+| `complications`        | string   | Any complications that occurred                   | `null` or `"Minor bleeding at injection site"`      |
+| `doctor_id`            | integer  | ID of doctor who performed/oversaw treatment      | `2`                                                 |
+| `nurse_id`             | integer  | ID of nurse who assisted                          | `3`                                                 |
+| `created_at`           | datetime | When the record was created                       | `"2024-12-05T09:30:00.000000Z"`                     |
+| `updated_at`           | datetime | When the record was last updated                  | `"2024-12-05T10:15:00.000000Z"`                     |
+| `doctor`               | object   | Doctor details (nested relationship)              | `{ "id": 2, "name": "Dr. Smith", "email": "..." }`  |
+| `nurse`                | object   | Nurse details (nested relationship)               | `{ "id": 3, "name": "Nurse Jane", "email": "..." }` |
+
+#### Example: Surgical Procedure Treatment Record
+
+```json
+{
+    "message": "Treatment record retrieved successfully",
+    "data": {
+        "id": 8,
+        "admission_id": 5,
+        "patient_id": 1,
+        "treatment_type": "surgery",
+        "treatment_name": "Appendectomy",
+        "description": "Laparoscopic removal of inflamed appendix",
+        "notes": "Emergency surgery due to acute appendicitis. Patient stable throughout procedure.",
+        "medications": "General anesthesia: Propofol, Fentanyl. Post-op: Morphine for pain management, Cefazolin for infection prevention",
+        "dosage": "Propofol: 2mg/kg IV. Fentanyl: 50mcg IV. Morphine: 5mg every 4 hours as needed. Cefazolin: 1g IV every 8 hours for 24 hours",
+        "treatment_date": "2024-12-04",
+        "treatment_time": "14:00:00",
+        "results": "Surgery completed successfully. Appendix removed without perforation. No complications during procedure. Patient transferred to recovery room in stable condition.",
+        "findings": "Acute appendicitis confirmed. No peritonitis or abscess formation. Appendix was inflamed but intact. No signs of rupture.",
+        "outcome": "successful",
+        "pre_procedure_notes": "Patient fasted for 12 hours. Pre-operative assessment completed. Vital signs stable: BP 120/80, HR 75, O2 Sat 98%. Consent obtained. Surgical team briefed. Operating room prepared.",
+        "post_procedure_notes": "Patient recovered from anesthesia without complications. Vital signs stable. Pain well controlled with morphine. Incision site clean, no signs of infection. Patient alert and oriented. Discharge planning initiated.",
+        "complications": null,
+        "doctor_id": 2,
+        "nurse_id": 3,
+        "created_at": "2024-12-04T14:00:00.000000Z",
+        "updated_at": "2024-12-04T16:30:00.000000Z",
+        "doctor": {
+            "id": 2,
+            "name": "Dr. Smith",
+            "email": "dr.smith@hospital.com"
+        },
+        "nurse": {
+            "id": 3,
+            "name": "Nurse Jane",
+            "email": "nurse.jane@hospital.com"
+        }
+    }
+}
+```
+
+#### Example: Medication Treatment Record
+
+```json
+{
+    "message": "Treatment record retrieved successfully",
+    "data": {
+        "id": 15,
+        "admission_id": 5,
+        "patient_id": 1,
+        "treatment_type": "medication",
+        "treatment_name": "Antibiotic Therapy",
+        "description": "Intravenous antibiotic administration for suspected infection",
+        "notes": "Patient allergic to penicillin - using alternative antibiotic (Ceftriaxone)",
+        "medications": "Ceftriaxone 1g, Metronidazole 500mg",
+        "dosage": "Ceftriaxone: 1g IV every 24 hours. Metronidazole: 500mg IV every 8 hours. Course duration: 7 days",
+        "treatment_date": "2024-12-03",
+        "treatment_time": "10:00:00",
+        "results": "Patient responding well to antibiotic therapy. White blood cell count decreasing. No signs of allergic reaction.",
+        "findings": "Initial WBC count was elevated (15,000/μL), indicating possible infection. After 48 hours of treatment, WBC count normalized to 8,000/μL. Patient's condition improving.",
+        "outcome": "ongoing",
+        "pre_procedure_notes": null,
+        "post_procedure_notes": null,
+        "complications": null,
+        "doctor_id": 2,
+        "nurse_id": 3,
+        "created_at": "2024-12-03T10:00:00.000000Z",
+        "updated_at": "2024-12-05T10:00:00.000000Z",
+        "doctor": {
+            "id": 2,
+            "name": "Dr. Smith",
+            "email": "dr.smith@hospital.com"
+        },
+        "nurse": {
+            "id": 3,
+            "name": "Nurse Jane",
+            "email": "nurse.jane@hospital.com"
+        }
+    }
+}
+```
+
+#### Error Responses
+
+**403 Forbidden - User not assigned to admission:**
+
+```json
+{
+    "message": "Unauthorized. You do not have access to this admission's treatment records."
+}
+```
+
+**404 Not Found - Admission:**
+
+```json
+{
+    "message": "Admission not found."
+}
+```
+
+**404 Not Found - Treatment Record:**
+
+```json
+{
+    "message": "Treatment record not found."
+}
+```
+
 ### 29. Update Treatment Record
 
 **Endpoint:** `PUT /api/admissions/{admissionId}/treatments/{recordId}` or `PATCH /api/admissions/{admissionId}/treatments/{recordId}`
