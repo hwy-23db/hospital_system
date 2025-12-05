@@ -2612,6 +2612,244 @@ Treatment records are linked to **specific admissions**.
 
 **Authorization:** Role-based (must have access to the admission)
 
+| Role        | Access                                                 |
+| ----------- | ------------------------------------------------------ |
+| `root_user` | ✅ All treatment records                               |
+| `admission` | ✅ All treatment records                               |
+| `doctor`    | ✅ Only treatment records of their assigned admissions |
+| `nurse`     | ✅ Only treatment records of their assigned admissions |
+
+**Purpose:** Retrieve all treatment records for a specific admission. Records are ordered by treatment date (newest first), then by creation date.
+
+#### Success Response (200 OK)
+
+```json
+{
+    "message": "Treatment records retrieved successfully",
+    "admission_id": 5,
+    "admission_number": "ADM-2024-000005",
+    "patient_id": 1,
+    "patient_name": "John Patient",
+    "total": 3,
+    "data": [
+        {
+            "id": 14,
+            "admission_id": 5,
+            "patient_id": 1,
+            "treatment_type": "diagnostic",
+            "treatment_name": "Complete Blood Count (CBC)",
+            "description": "Routine blood test to check blood cell counts",
+            "notes": "Patient was fasting for 12 hours before test",
+            "medications": null,
+            "dosage": null,
+            "treatment_date": "2024-12-05",
+            "treatment_time": "09:30:00",
+            "results": "Hemoglobin: 14.2 g/dL (normal). White blood cell count: 7,500/μL (normal). Platelet count: 250,000/μL (normal).",
+            "findings": "All blood parameters within normal range. No signs of infection or anemia.",
+            "outcome": "completed",
+            "pre_procedure_notes": null,
+            "post_procedure_notes": null,
+            "complications": null,
+            "doctor_id": 2,
+            "nurse_id": 3,
+            "created_at": "2024-12-05T09:30:00.000000Z",
+            "updated_at": "2024-12-05T09:30:00.000000Z",
+            "doctor": {
+                "id": 2,
+                "name": "Dr. Smith",
+                "email": "dr.smith@hospital.com"
+            },
+            "nurse": {
+                "id": 3,
+                "name": "Nurse Jane",
+                "email": "nurse.jane@hospital.com"
+            }
+        },
+        {
+            "id": 13,
+            "admission_id": 5,
+            "patient_id": 1,
+            "treatment_type": "medication",
+            "treatment_name": "Antibiotic Therapy",
+            "description": "Intravenous antibiotic administration for suspected infection",
+            "notes": "Patient allergic to penicillin - using alternative antibiotic (Ceftriaxone)",
+            "medications": "Ceftriaxone 1g, Metronidazole 500mg",
+            "dosage": "Ceftriaxone: 1g IV every 24 hours. Metronidazole: 500mg IV every 8 hours. Course duration: 7 days",
+            "treatment_date": "2024-12-03",
+            "treatment_time": "10:00:00",
+            "results": "Patient responding well to antibiotic therapy. White blood cell count decreasing. No signs of allergic reaction.",
+            "findings": "Initial WBC count was elevated (15,000/μL), indicating possible infection. After 48 hours of treatment, WBC count normalized to 8,000/μL.",
+            "outcome": "ongoing",
+            "pre_procedure_notes": null,
+            "post_procedure_notes": null,
+            "complications": null,
+            "doctor_id": 2,
+            "nurse_id": 3,
+            "created_at": "2024-12-03T10:00:00.000000Z",
+            "updated_at": "2024-12-05T10:00:00.000000Z",
+            "doctor": {
+                "id": 2,
+                "name": "Dr. Smith",
+                "email": "dr.smith@hospital.com"
+            },
+            "nurse": {
+                "id": 3,
+                "name": "Nurse Jane",
+                "email": "nurse.jane@hospital.com"
+            }
+        },
+        {
+            "id": 8,
+            "admission_id": 5,
+            "patient_id": 1,
+            "treatment_type": "surgery",
+            "treatment_name": "Appendectomy",
+            "description": "Laparoscopic removal of inflamed appendix",
+            "notes": "Emergency surgery due to acute appendicitis. Patient stable throughout procedure.",
+            "medications": "General anesthesia: Propofol, Fentanyl. Post-op: Morphine for pain management, Cefazolin for infection prevention",
+            "dosage": "Propofol: 2mg/kg IV. Fentanyl: 50mcg IV. Morphine: 5mg every 4 hours as needed. Cefazolin: 1g IV every 8 hours for 24 hours",
+            "treatment_date": "2024-12-04",
+            "treatment_time": "14:00:00",
+            "results": "Surgery completed successfully. Appendix removed without perforation. No complications during procedure.",
+            "findings": "Acute appendicitis confirmed. No peritonitis or abscess formation. Appendix was inflamed but intact.",
+            "outcome": "successful",
+            "pre_procedure_notes": "Patient fasted for 12 hours. Pre-operative assessment completed. Vital signs stable: BP 120/80, HR 75, O2 Sat 98%. Consent obtained.",
+            "post_procedure_notes": "Patient recovered from anesthesia without complications. Vital signs stable. Pain well controlled with morphine. Incision site clean, no signs of infection.",
+            "complications": null,
+            "doctor_id": 2,
+            "nurse_id": 3,
+            "created_at": "2024-12-04T14:00:00.000000Z",
+            "updated_at": "2024-12-04T16:30:00.000000Z",
+            "doctor": {
+                "id": 2,
+                "name": "Dr. Smith",
+                "email": "dr.smith@hospital.com"
+            },
+            "nurse": {
+                "id": 3,
+                "name": "Nurse Jane",
+                "email": "nurse.jane@hospital.com"
+            }
+        }
+    ]
+}
+```
+
+#### Response Structure
+
+| Field              | Type    | Description                                       |
+| ------------------ | ------- | ------------------------------------------------- |
+| `message`          | string  | Success message                                   |
+| `admission_id`     | integer | ID of the admission                               |
+| `admission_number` | string  | Unique admission number (e.g., "ADM-2024-000005") |
+| `patient_id`       | integer | ID of the patient                                 |
+| `patient_name`     | string  | Name of the patient                               |
+| `total`            | integer | Total number of treatment records                 |
+| `data`             | array   | Array of treatment record objects                 |
+
+#### Treatment Record Object Structure
+
+Each object in the `data` array contains:
+
+| Field                  | Type     | Description                                  | Notes                                  |
+| ---------------------- | -------- | -------------------------------------------- | -------------------------------------- |
+| `id`                   | integer  | Treatment record ID                          |                                        |
+| `admission_id`         | integer  | Admission this treatment belongs to          |                                        |
+| `patient_id`           | integer  | Patient ID                                   | Denormalized for easier queries        |
+| `treatment_type`       | string   | Type of treatment                            | See treatment types below              |
+| `treatment_name`       | string   | Specific name of treatment                   | Can be null                            |
+| `description`          | string   | Detailed description                         | Can be null                            |
+| `notes`                | string   | General notes                                | Can be null                            |
+| `medications`          | string   | Medications administered                     | Can be null                            |
+| `dosage`               | string   | Dosage information                           | Can be null                            |
+| `treatment_date`       | date     | Date when treatment was performed            | Format: `YYYY-MM-DD`                   |
+| `treatment_time`       | time     | Time when treatment was performed            | Format: `HH:mm:ss`                     |
+| `results`              | string   | Results of the treatment                     | Can be null                            |
+| `findings`             | string   | Medical findings                             | Can be null                            |
+| `outcome`              | string   | Treatment outcome                            | See outcomes below                     |
+| `pre_procedure_notes`  | string   | Notes before procedure                       | Can be null (for surgeries/procedures) |
+| `post_procedure_notes` | string   | Notes after procedure                        | Can be null (for surgeries/procedures) |
+| `complications`        | string   | Any complications that occurred              | Can be null                            |
+| `doctor_id`            | integer  | ID of doctor who performed/oversaw treatment | Can be null                            |
+| `nurse_id`             | integer  | ID of nurse who assisted                     | Can be null                            |
+| `created_at`           | datetime | When the record was created                  | ISO 8601 format                        |
+| `updated_at`           | datetime | When the record was last updated             | ISO 8601 format                        |
+| `doctor`               | object   | Doctor details (nested relationship)         | `{ id, name, email }`                  |
+| `nurse`                | object   | Nurse details (nested relationship)          | `{ id, name, email }`                  |
+
+#### Treatment Types
+
+Valid `treatment_type` values:
+
+-   `surgery`
+-   `radiotherapy`
+-   `chemotherapy`
+-   `targeted_therapy`
+-   `hormone_therapy`
+-   `immunotherapy`
+-   `intervention_therapy`
+-   `medication`
+-   `physical_therapy`
+-   `supportive_care`
+-   `diagnostic`
+-   `consultation`
+-   `procedure`
+-   `other`
+
+#### Treatment Outcomes
+
+Valid `outcome` values:
+
+-   `pending` - Treatment not yet completed
+-   `successful` - Treatment completed successfully
+-   `partial` - Partial success
+-   `unsuccessful` - Treatment did not achieve desired result
+-   `ongoing` - Treatment still in progress
+-   `completed` - Treatment finished (neutral outcome)
+
+#### Ordering
+
+Treatment records are ordered by:
+
+1. **Treatment date** (descending - newest first)
+2. **Creation date** (descending - newest first)
+
+This means the most recent treatments appear first in the list.
+
+#### Example: Empty List Response
+
+If an admission has no treatment records:
+
+```json
+{
+    "message": "Treatment records retrieved successfully",
+    "admission_id": 5,
+    "admission_number": "ADM-2024-000005",
+    "patient_id": 1,
+    "patient_name": "John Patient",
+    "total": 0,
+    "data": []
+}
+```
+
+#### Error Responses
+
+**403 Forbidden - User not assigned to admission:**
+
+```json
+{
+    "message": "Unauthorized. You do not have access to this admission's treatment records."
+}
+```
+
+**404 Not Found - Admission:**
+
+```json
+{
+    "message": "Admission not found."
+}
+```
+
 ### 27. Create Treatment Record
 
 **Endpoint:** `POST /api/admissions/{admissionId}/treatments`
