@@ -816,10 +816,30 @@ The system supports **two types of admissions:**
 
 **Query Parameters:**
 
-| Parameter  | Type    | Description                                                 |
-| ---------- | ------- | ----------------------------------------------------------- |
-| `status`   | string  | Filter: `admitted`, `discharged`, `deceased`, `transferred` |
-| `per_page` | integer | Results per page (default: 15)                              |
+| Parameter        | Type    | Description                                                 |
+| ---------------- | ------- | ----------------------------------------------------------- |
+| `status`         | string  | Filter: `admitted`, `discharged`, `deceased`, `transferred` |
+| `admission_type` | string  | Filter: `inpatient`, `outpatient`                           |
+| `per_page`       | integer | Results per page (default: 15)                              |
+
+**Filter Examples:**
+
+```bash
+# Get all active inpatient admissions
+GET /api/admissions?status=admitted&admission_type=inpatient
+
+# Get all discharged outpatient visits
+GET /api/admissions?status=discharged&admission_type=outpatient
+
+# Get all inpatient admissions (any status)
+GET /api/admissions?admission_type=inpatient
+
+# Get all outpatient visits (any status)
+GET /api/admissions?admission_type=outpatient
+
+# Combine filters with pagination
+GET /api/admissions?status=admitted&admission_type=inpatient&per_page=20
+```
 
 ```json
 // Response
@@ -832,6 +852,7 @@ The system supports **two types of admissions:**
                 "admission_number": "ADM-2024-000001",
                 "admission_date": "2024-12-03",
                 "admitted_for": "Chest pain",
+                "admission_type": "inpatient",
                 "status": "admitted",
                 "ward": "Cardiology A",
                 "bed_number": "12",
@@ -844,9 +865,39 @@ The system supports **two types of admissions:**
                 "doctor": { "id": 2, "name": "Dr. Smith" },
                 "nurse": { "id": 3, "name": "Nurse Jane" },
                 "treatment_records_count": 8
+            },
+            {
+                "id": 2,
+                "admission_number": "ADM-2024-000002",
+                "admission_date": "2024-12-05",
+                "admitted_for": "Follow-up consultation",
+                "admission_type": "outpatient",
+                "status": "admitted",
+                "ward": null,
+                "bed_number": null,
+                "length_of_stay": 0,
+                "patient": {
+                    "id": 2,
+                    "name": "Jane Doe",
+                    "nrc_number": "12/XYZ(N)789012"
+                },
+                "doctor": { "id": 2, "name": "Dr. Smith" },
+                "nurse": { "id": 4, "name": "Nurse Mary" },
+                "treatment_records_count": 2
             }
-        ]
+        ],
+        "current_page": 1,
+        "per_page": 15,
+        "total": 2
     }
+}
+```
+
+**Error Response (400 Bad Request) - Invalid admission_type:**
+
+```json
+{
+    "message": "Invalid admission_type. Must be \"inpatient\" or \"outpatient\"."
 }
 ```
 

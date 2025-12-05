@@ -25,6 +25,7 @@ class AdmissionController extends Controller
     {
         $user = $request->user();
         $status = $request->query('status'); // admitted, discharged, deceased, transferred
+        $admissionType = $request->query('admission_type'); // inpatient, outpatient
         $perPage = $request->query('per_page', 15);
 
         $query = Admission::with([
@@ -56,12 +57,23 @@ class AdmissionController extends Controller
             $query->where('status', $status);
         }
 
+        // Apply admission type filter (inpatient/outpatient)
+        if ($admissionType) {
+            if (!in_array($admissionType, ['inpatient', 'outpatient'])) {
+                return response()->json([
+                    'message' => 'Invalid admission_type. Must be "inpatient" or "outpatient".'
+                ], 400);
+            }
+            $query->where('admission_type', $admissionType);
+        }
+
         $admissions = $query->orderBy('admission_date', 'desc')->paginate($perPage);
 
         Log::info('Admission list accessed', [
             'user_id' => $user->id,
             'role' => $user->role,
             'status_filter' => $status,
+            'admission_type_filter' => $admissionType,
             'total_results' => $admissions->total(),
             'ip' => $request->ip(),
         ]);
