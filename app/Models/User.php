@@ -97,6 +97,20 @@ class User extends Authenticatable
                 }
             }
         });
+
+        static::deleting(function ($user) {
+            // Prevent deleting root_user
+            if ($user->role === 'root_user') {
+                Log::warning('Attempt to delete root_user blocked', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                ]);
+
+                throw ValidationException::withMessages([
+                    'role' => ['Root user cannot be deleted from the system.'],
+                ]);
+            }
+        });
     }
 
     /**
