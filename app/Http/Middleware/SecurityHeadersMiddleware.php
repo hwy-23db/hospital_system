@@ -25,7 +25,7 @@ class SecurityHeadersMiddleware
             "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
             "font-src 'self' https://fonts.bunny.net data:",
             "img-src 'self' data: https:",
-            "connect-src 'self' http://localhost:5173 http://127.0.0.1:5173 " . config('app.url'),
+            "connect-src 'self' http://localhost:5173 http://127.0.0.1:5173 https://www.nationalcancercenter.click " . config('app.url'),
             "frame-ancestors 'none'", // Prevent embedding in iframes
             "base-uri 'self'",
             "form-action 'self'",
