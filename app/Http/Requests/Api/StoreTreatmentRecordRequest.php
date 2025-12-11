@@ -44,6 +44,8 @@ class StoreTreatmentRecordRequest extends FormRequest
             'complications' => 'nullable|string|max:500',
             'doctor_id' => 'nullable|exists:users,id',
             'nurse_id' => 'nullable|exists:users,id',
+            'attachments' => 'nullable|array|max:10',
+            'attachments.*' => 'file|mimes:pdf|max:5120', // 5MB max per file
         ];
     }
 

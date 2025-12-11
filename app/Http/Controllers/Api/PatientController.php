@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StorePatientRequest;
 use App\Http\Requests\Api\UpdatePatientRequest;
+use App\Models\Department;
 use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -412,6 +413,20 @@ class PatientController extends Controller
         return response()->json([
             'message' => 'Nurses retrieved successfully',
             'data' => $nurses,
+        ]);
+    }
+
+    /**
+     * Get hospital departments for dropdown selection.
+     * Available to all authenticated users for admission forms.
+     */
+    public function getDepartments(Request $request): JsonResponse
+    {
+        $departments = Department::withDisplayNames();
+
+        return response()->json([
+            'message' => 'Hospital departments retrieved successfully',
+            'data' => $departments,
         ]);
     }
 

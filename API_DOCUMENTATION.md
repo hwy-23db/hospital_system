@@ -636,34 +636,36 @@ GET /api/patients/search?q=123456
 
 #### Request Parameters
 
-| Field                    | Type          | Required   | Constraints    | Accepted Values                                                               | Description                                                       |
-| ------------------------ | ------------- | ---------- | -------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Field                    | Type          | Required   | Constraints | Accepted Values                                                               | Description                                                        |
+| ------------------------ | ------------- | ---------- | ----------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | **Basic Information**    |
-| `name`                   | string        | ✅ **Yes** | max:255        | Any text                                                                      | Patient's full name                                               |
-| `nrc_number`             | string        | No         | max:50, unique | e.g., "12/ABC(N)123456"                                                       | National Registration Card number (must be unique)                |
-| `sex`                    | string        | No         | -              | `male`, `female`, `other`                                                     | Patient's gender                                                  |
-| `age`                    | integer       | No         | 0-150          | Positive integer                                                              | Patient's age in years                                            |
-| `dob`                    | date          | No         | <= today       | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                               |
-| `contact_phone`          | string        | No         | max:20         | e.g., "09123456789"                                                           | Primary contact phone number                                      |
+| `name`                   | string        | ✅ **Yes** | max:255     | Any text                                                                      | Patient's full name                                                |
+| `nrc_number`             | string        | ✅ **Yes** | NRC format  | e.g., `1/AhGaYa(N)123456`                                                     | NRC number (required, validated against NRC format and uniqueness) |
+| `sex`                    | string        | No         | -           | `male`, `female`, `other`                                                     | Patient's gender                                                   |
+| `age`                    | integer       | No         | 0-150       | Positive integer                                                              | Patient's age in years                                             |
+| `dob`                    | date          | No         | <= today    | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                                |
+| `contact_phone`          | string        | No         | max:20      | e.g., "09123456789"                                                           | Primary contact phone number                                       |
 | **Address**              |
-| `permanent_address`      | string (JSON) | No         | Validated      | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list) |
+| `permanent_address`      | string (JSON) | No         | Validated   | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list)  |
 | **Personal Details**     |
-| `marital_status`         | string        | No         | -              | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                    |
-| `ethnic_group`           | string        | No         | max:100        | e.g., "Bamar", "Shan"                                                         | Ethnic background                                                 |
-| `religion`               | string        | No         | max:100        | e.g., "Buddhist", "Christian"                                                 | Religious affiliation                                             |
-| `occupation`             | string        | No         | max:100        | Any text                                                                      | Current occupation                                                |
-| `father_name`            | string        | No         | max:255        | Any text                                                                      | Father's name                                                     |
-| `mother_name`            | string        | No         | max:255        | Any text                                                                      | Mother's name                                                     |
+| `marital_status`         | string        | No         | -           | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                     |
+| `ethnic_group`           | string        | No         | max:100     | e.g., "Bamar", "Shan"                                                         | Ethnic background                                                  |
+| `religion`               | string        | No         | max:100     | e.g., "Buddhist", "Christian"                                                 | Religious affiliation                                              |
+| `occupation`             | string        | No         | max:100     | Any text                                                                      | Current occupation                                                 |
+| `father_name`            | string        | No         | max:255     | Any text                                                                      | Father's name                                                      |
+| `mother_name`            | string        | No         | max:255     | Any text                                                                      | Mother's name                                                      |
 | **Emergency Contact**    |
-| `nearest_relative_name`  | string        | No         | max:255        | Any text                                                                      | Emergency contact person name                                     |
-| `nearest_relative_phone` | string        | No         | max:20         | e.g., "09987654321"                                                           | Emergency contact phone number                                    |
-| `relationship`           | string        | No         | max:50         | e.g., "spouse", "parent"                                                      | Relationship to patient                                           |
+| `nearest_relative_name`  | string        | No         | max:255     | Any text                                                                      | Emergency contact person name                                      |
+| `nearest_relative_phone` | string        | No         | max:20      | e.g., "09987654321"                                                           | Emergency contact phone number                                     |
+| `relationship`           | string        | No         | max:50      | e.g., "spouse", "parent"                                                      | Relationship to patient                                            |
 | **Medical Information**  |
-| `blood_type`             | string        | No         | -              | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                   |
-| `known_allergies`        | string (text) | No         | max:500        | Comma-separated list                                                          | Known drug/food allergies                                         |
-| `chronic_conditions`     | string (text) | No         | max:500        | Comma-separated list                                                          | Chronic medical conditions                                        |
+| `blood_type`             | string        | No         | -           | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                    |
+| `known_allergies`        | string (text) | No         | max:500     | Comma-separated list                                                          | Known drug/food allergies                                          |
+| `chronic_conditions`     | string (text) | No         | max:500     | Comma-separated list                                                          | Chronic medical conditions                                         |
 
-**Address Validation Note:**
+**Address & NRC Validation Notes:**
+
+-   `nrc_number` is **required**. Format: `{nrc_code}/{name_en}({citizenship})123456`. Citizenship in `N,F,P,TH,S`. Township code validated when available in the NRC dataset. Use `GET /api/nrc-codes` to populate code/township/citizenship options.
 
 The `permanent_address` field accepts addresses in two formats:
 
@@ -2999,22 +3001,43 @@ If an admission has no treatment records:
 -   Treatment records can be **updated** for closed admissions (corrections/clarifications)
 -   Treatment records **cannot be created** for closed admissions (only active admissions)
 
+#### Request Parameters
+
+| Field                  | Type   | Required | Constraints            | Accepted Values           | Description                                           |
+| ---------------------- | ------ | -------- | ---------------------- | ------------------------- | ----------------------------------------------------- |
+| `treatment_type`       | string | ✅ Yes   | -                      | See treatment types below | Type of treatment performed                           |
+| `treatment_name`       | string | No       | max:255                | Any text                  | Specific name of treatment                            |
+| `description`          | string | No       | max:1000               | Any text                  | Detailed description                                  |
+| `notes`                | string | No       | max:1000               | Any text                  | General notes                                         |
+| `medications`          | string | No       | max:500                | Any text                  | Medications administered                              |
+| `dosage`               | string | No       | max:255                | Any text                  | Dosage information                                    |
+| `treatment_date`       | date   | No       | -                      | YYYY-MM-DD                | Date of treatment (auto-set to today if not provided) |
+| `treatment_time`       | time   | No       | -                      | HH:MM                     | Time of treatment                                     |
+| `results`              | string | No       | max:1000               | Any text                  | Treatment results                                     |
+| `findings`             | string | No       | max:1000               | Any text                  | Medical findings                                      |
+| `outcome`              | string | No       | -                      | See outcomes below        | Treatment outcome                                     |
+| `pre_procedure_notes`  | string | No       | max:1000               | Any text                  | Notes before procedure                                |
+| `post_procedure_notes` | string | No       | max:1000               | Any text                  | Notes after procedure                                 |
+| `complications`        | string | No       | max:500                | Any text                  | Any complications                                     |
+| `attachments`          | file[] | No       | max:10 files, 5MB each | PDF only                  | Medical document attachments                          |
+
+**File Upload Notes:**
+
+-   Maximum 10 PDF files per treatment record
+-   Each file limited to 5MB
+-   Files are stored securely and accessible via `attachment_urls` in responses
+-   Files can be removed individually using DELETE endpoint
+
 ```json
-// Request
+// Request Example (FormData for file uploads)
 {
-    "treatment_type": "medication",
-    "treatment_name": "IV Antibiotics",
-    "description": "Broad spectrum antibiotic therapy",
-    "notes": "Start after blood culture results",
-    "medications": "Ceftriaxone",
-    "dosage": "1g IV every 12 hours",
+    "treatment_type": "diagnostic",
+    "treatment_name": "MRI Brain Scan",
+    "description": "Magnetic resonance imaging of brain",
+    "notes": "Patient reported headaches",
     "treatment_date": "2024-12-03",
-    "treatment_time": "10:00",
-    "results": "Pending",
-    "outcome": "ongoing",
-    "pre_procedure_notes": null,
-    "post_procedure_notes": null,
-    "complications": null
+    "outcome": "completed"
+    // attachments: [file1.pdf, file2.pdf, ...] (uploaded via FormData)
 }
 ```
 
@@ -3038,17 +3061,39 @@ If an admission has no treatment records:
         "id": 1,
         "admission_id": 5,
         "patient_id": 1,
-        "treatment_type": "medication",
-        "treatment_name": "IV Antibiotics",
+        "treatment_type": "diagnostic",
+        "treatment_name": "MRI Brain Scan",
         "treatment_date": "2024-12-03",
-        "outcome": "ongoing",
+        "outcome": "completed",
+        "attachments": [
+            {
+                "filename": "mri_report.pdf",
+                "path": "treatment-attachments/1733256789_abc123_mri_report.pdf",
+                "size": 2457600,
+                "uploaded_at": "2024-12-03T14:30:00.000000Z"
+            }
+        ],
+        "attachment_urls": [
+            {
+                "filename": "mri_report.pdf",
+                "path": "treatment-attachments/1733256789_abc123_mri_report.pdf",
+                "url": "http://localhost:8000/storage/treatment-attachments/1733256789_abc123_mri_report.pdf",
+                "size": 2457600,
+                "uploaded_at": "2024-12-03T14:30:00.000000Z"
+            }
+        ],
         "doctor": {
             "id": 2,
-            "name": "Dr. Smith"
+            "name": "Dr. Smith",
+            "email": "dr.smith@hospital.com"
         },
         "admission": {
             "id": 5,
             "admission_number": "ADM-2024-000005"
+        },
+        "patient": {
+            "id": 1,
+            "name": "John Doe"
         }
     }
 }
@@ -3507,7 +3552,54 @@ Content-Type: application/json
 | Add post-treatment observations | `post_procedure_notes`, `findings`                                        |
 | Record complications            | `complications`, `notes`                                                  |
 
-### 30. Delete Treatment Record
+### 30. Remove Treatment Record Attachment
+
+**Endpoint:** `DELETE /api/admissions/{admissionId}/treatments/{recordId}/attachments/{filename}`
+
+**Authorization:** `root_user` or `doctor` (assigned only)
+
+**Description:** Remove a specific PDF attachment from a treatment record. The file is permanently deleted from storage.
+
+**Path Parameters:**
+
+-   `admissionId` (integer): Admission ID
+-   `recordId` (integer): Treatment record ID
+-   `filename` (string): Exact filename of the attachment to remove
+
+#### Success Response (200 OK)
+
+```json
+{
+    "message": "Attachment removed successfully",
+    "data": {
+        "id": 1,
+        "treatment_type": "diagnostic",
+        "treatment_name": "MRI Brain Scan",
+        "attachments": [],
+        "attachment_urls": []
+    }
+}
+```
+
+#### Error Responses
+
+**403 Forbidden** - Unauthorized user
+
+```json
+{
+    "message": "Unauthorized. Only doctors can remove attachments."
+}
+```
+
+**404 Not Found** - Attachment not found
+
+```json
+{
+    "message": "Attachment not found."
+}
+```
+
+### 31. Delete Treatment Record
 
 **Endpoint:** ~~`DELETE /api/admissions/{admissionId}/treatments/{recordId}`~~ **DISABLED**
 
@@ -4045,6 +4137,226 @@ const townships = data[selectedRegion][selectedDistrict]; // ["Gangaw", "Kyaukht
 ---
 
 ## User Roles & Permissions
+
+### 36. Get NRC Codes
+
+**Endpoint:** `GET /api/nrc-codes`
+
+**Authorization:** All authenticated users
+
+**Description:** Returns NRC township codes grouped by `nrc_code`, plus allowed `citizenships` (`N,F,P,TH,S`) for building NRC numbers.
+
+**Response:**
+
+```json
+{
+    "message": "NRC codes retrieved successfully",
+    "citizenships": ["N", "F", "P", "TH", "S"],
+    "data": [
+        {
+            "id": "1",
+            "name_en": "AhGaYa",
+            "name_mm": "(အဂယ) အင်ဂျန်းယန်",
+            "nrc_code": "1"
+        },
+        {
+            "id": "2",
+            "name_en": "BaMaNa",
+            "name_mm": "(ဗမန) ဗန်းမော်",
+            "nrc_code": "1"
+        }
+        // ... full list
+    ]
+}
+```
+
+**Usage:** Frontend should fetch this to populate NRC dropdowns: `nrc_code`, `name_en` (township), `citizenship`. Then append a 6-digit number to form `nrc_number` as `{code}/{name_en}({citizenship})123456`.
+
+### 37. Get Hospital Departments
+
+**Endpoint:** `GET /api/departments`
+
+**Authorization:** All authenticated users
+
+**Description:** Returns hospital departments for cancer hospital admission forms and department selection dropdowns.
+
+**Response:**
+
+```json
+{
+    "message": "Hospital departments retrieved successfully",
+    "data": {
+        "medical_oncology": "Medical Oncology",
+        "surgical_oncology": "Surgical Oncology",
+        "radiation_oncology": "Radiation Oncology",
+        "gynecologic_oncology": "Gynecologic Oncology",
+        "pediatric_oncology": "Pediatric Oncology",
+        "hematology_oncology": "Hematology/Oncology",
+        "pathology": "Pathology",
+        "radiology": "Radiology",
+        "nuclear_medicine": "Nuclear Medicine",
+        "laboratory": "Laboratory",
+        "pharmacy": "Pharmacy",
+        "emergency": "Emergency Department",
+        "intensive_care_unit": "Intensive Care Unit",
+        "palliative_care": "Palliative Care",
+        "pain_management": "Pain Management",
+        "nutrition_support": "Nutrition Support",
+        "psychology": "Psychology",
+        "social_services": "Social Services",
+        "rehabilitation": "Rehabilitation",
+        "outpatient_clinic": "Outpatient Clinic"
+    }
+}
+```
+
+**Frontend Usage:**
+
+```javascript
+const response = await fetch("/api/departments", {
+    headers: { Authorization: `Bearer ${token}` },
+});
+const { data: departments } = await response.json();
+
+// Populate department dropdown
+Object.entries(departments).forEach(([key, label]) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = label;
+    departmentSelect.appendChild(option);
+});
+```
+
+### 38. Get Hospital Wards and Rooms
+
+**Endpoint:** `GET /api/wards`
+
+**Authorization:** All authenticated users
+
+**Description:** Returns hospital wards with their associated room numbers for admission forms. Room numbers are organized by ward for hierarchical selection.
+
+**Response:**
+
+```json
+{
+    "message": "Hospital wards retrieved successfully",
+    "data": {
+        "oncology_ward_a": {
+            "name": "Oncology Ward A",
+            "rooms": [
+                "101",
+                "102",
+                "103",
+                "104",
+                "105",
+                "106",
+                "107",
+                "108",
+                "109",
+                "110"
+            ]
+        },
+        "oncology_ward_b": {
+            "name": "Oncology Ward B",
+            "rooms": [
+                "201",
+                "202",
+                "203",
+                "204",
+                "205",
+                "206",
+                "207",
+                "208",
+                "209",
+                "210"
+            ]
+        },
+        "surgical_ward": {
+            "name": "Surgical Ward",
+            "rooms": ["301", "302", "303", "304", "305", "306", "307", "308"]
+        },
+        "icu_oncology": {
+            "name": "Oncology ICU",
+            "rooms": ["401", "402", "403", "404", "405", "406"]
+        },
+        "palliative_care_ward": {
+            "name": "Palliative Care Ward",
+            "rooms": ["501", "502", "503", "504", "505", "506"]
+        },
+        "pediatric_oncology": {
+            "name": "Pediatric Oncology Ward",
+            "rooms": ["601", "602", "603", "604", "605"]
+        },
+        "day_care_unit": {
+            "name": "Day Care Unit",
+            "rooms": [
+                "701",
+                "702",
+                "703",
+                "704",
+                "705",
+                "706",
+                "707",
+                "708",
+                "709",
+                "710"
+            ]
+        },
+        "isolation_ward": {
+            "name": "Isolation Ward",
+            "rooms": ["801", "802", "803", "804"]
+        }
+    }
+}
+```
+
+**Frontend Usage:**
+
+```javascript
+const response = await fetch("/api/wards", {
+    headers: { Authorization: `Bearer ${token}` },
+});
+const { data: wards } = await response.json();
+
+// Populate ward dropdown
+Object.entries(wards).forEach(([key, wardData]) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = wardData.name;
+    wardSelect.appendChild(option);
+});
+
+// When ward is selected, populate room dropdown
+wardSelect.addEventListener("change", (e) => {
+    const selectedWard = e.target.value;
+    const rooms = wards[selectedWard]?.rooms || [];
+
+    roomSelect.innerHTML = '<option value="">Select Room</option>';
+    rooms.forEach((roomNumber) => {
+        const option = document.createElement("option");
+        option.value = roomNumber;
+        option.textContent = `Room ${roomNumber}`;
+        roomSelect.appendChild(option);
+    });
+});
+```
+
+#### Additional Endpoint: Get Rooms for Specific Ward
+
+**Endpoint:** `GET /api/wards/{wardKey}/rooms`
+
+**Authorization:** All authenticated users
+
+**Description:** Returns room numbers for a specific ward. Useful for dynamic loading when ward selection changes.
+
+**Response:**
+
+```json
+{
+    "message": "Rooms retrieved successfully",
+    "data": ["101", "102", "103", "104", "105"]
+}
+```
 
 ### Permission Matrix
 

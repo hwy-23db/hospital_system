@@ -10,6 +10,7 @@ use App\Models\TreatmentRecord;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class TreatmentRecordController extends Controller
 {
@@ -98,7 +99,7 @@ class TreatmentRecordController extends Controller
         $data = $request->validated();
         $data['admission_id'] = $admissionId;
         $data['patient_id'] = $admission->patient_id;
-        
+
         // Auto-set doctor_id to current user if not specified and user is a doctor
         if (!isset($data['doctor_id']) && $user->role === 'doctor') {
             $data['doctor_id'] = $user->id;
@@ -114,6 +115,12 @@ class TreatmentRecordController extends Controller
             $data['treatment_date'] = now()->toDateString();
         }
 
+        // Handle file uploads
+        $attachments = $this->handleFileUploads($request);
+        if (!empty($attachments)) {
+            $data['attachments'] = $attachments;
+        }
+
         $record = TreatmentRecord::create($data);
 
         Log::info('Treatment record created', [
@@ -125,14 +132,18 @@ class TreatmentRecordController extends Controller
             'ip' => $request->ip(),
         ]);
 
+        $recordData = $record->load([
+            'doctor:id,name,email',
+            'nurse:id,name,email',
+            'admission:id,admission_number',
+            'patient:id,name'
+        ])->toArray();
+
+        $recordData['attachment_urls'] = $record->getAttachmentUrls();
+
         return response()->json([
             'message' => 'Treatment record created successfully',
-            'data' => $record->load([
-                'doctor:id,name,email',
-                'nurse:id,name,email',
-                'admission:id,admission_number',
-                'patient:id,name'
-            ]),
+            'data' => $recordData,
         ], 201);
     }
 
@@ -168,9 +179,13 @@ class TreatmentRecordController extends Controller
             ], 404);
         }
 
+        // Add attachment URLs to the response
+        $recordData = $record->toArray();
+        $recordData['attachment_urls'] = $record->getAttachmentUrls();
+
         return response()->json([
             'message' => 'Treatment record retrieved successfully',
-            'data' => $record,
+            'data' => $recordData,
         ]);
     }
 
@@ -213,7 +228,16 @@ class TreatmentRecordController extends Controller
             ], 404);
         }
 
-        $record->update($request->validated());
+        $data = $request->validated();
+
+        // Handle file uploads - merge with existing attachments
+        $newAttachments = $this->handleFileUploads($request);
+        if (!empty($newAttachments)) {
+            $existingAttachments = $record->attachments ?? [];
+            $data['attachments'] = array_merge($existingAttachments, $newAttachments);
+        }
+
+        $record->update($data);
 
         Log::info('Treatment record updated', [
             'record_id' => $record->id,
@@ -222,9 +246,12 @@ class TreatmentRecordController extends Controller
             'ip' => $request->ip(),
         ]);
 
+        $recordData = $record->fresh()->load(['doctor:id,name,email', 'nurse:id,name,email'])->toArray();
+        $recordData['attachment_urls'] = $record->getAttachmentUrls();
+
         return response()->json([
             'message' => 'Treatment record updated successfully',
-            'data' => $record->fresh()->load(['doctor:id,name,email', 'nurse:id,name,email']),
+            'data' => $recordData,
         ]);
     }
 
@@ -310,5 +337,117 @@ class TreatmentRecordController extends Controller
             'nurse' => $admission->nurse_id === $user->id,
             default => false,
         };
+    }
+
+    /**
+     * Remove a specific attachment from a treatment record.
+     */
+    public function removeAttachment(Request $request, $admissionId, $recordId, $filename): JsonResponse
+    {
+        $user = $request->user();
+        $admission = Admission::find($admissionId);
+
+        if (!$admission) {
+            return response()->json([
+                'message' => 'Admission not found.'
+            ], 404);
+        }
+
+        // Only doctors and root can remove attachments
+        if (!in_array($user->role, ['root_user', 'doctor'])) {
+            return response()->json([
+                'message' => 'Unauthorized. Only doctors can remove attachments.'
+            ], 403);
+        }
+
+        // Doctors can only modify records for their assigned admissions
+        if ($user->role === 'doctor' && $admission->doctor_id !== $user->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only modify treatment records for admissions assigned to you.'
+            ], 403);
+        }
+
+        $record = TreatmentRecord::where('admission_id', $admissionId)
+            ->where('id', $recordId)
+            ->first();
+
+        if (!$record) {
+            return response()->json([
+                'message' => 'Treatment record not found.'
+            ], 404);
+        }
+
+        // Find and remove the attachment
+        $attachments = $record->attachments ?? [];
+        $attachmentToRemove = null;
+
+        foreach ($attachments as $key => $attachment) {
+            if (($attachment['filename'] ?? '') === $filename) {
+                $attachmentToRemove = $attachment;
+                unset($attachments[$key]);
+                break;
+            }
+        }
+
+        if (!$attachmentToRemove) {
+            return response()->json([
+                'message' => 'Attachment not found.'
+            ], 404);
+        }
+
+        // Delete file from storage
+        if (isset($attachmentToRemove['path']) && Storage::disk('public')->exists($attachmentToRemove['path'])) {
+            Storage::disk('public')->delete($attachmentToRemove['path']);
+        }
+
+        // Update record
+        $record->update(['attachments' => array_values($attachments)]);
+
+        Log::info('Treatment record attachment removed', [
+            'record_id' => $record->id,
+            'filename' => $filename,
+            'removed_by' => $user->id,
+            'ip' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'message' => 'Attachment removed successfully',
+            'data' => $record->fresh()->load(['doctor:id,name,email', 'nurse:id,name,email']),
+        ]);
+    }
+
+    /**
+     * Handle file uploads for treatment record attachments.
+     */
+    private function handleFileUploads(Request $request): array
+    {
+        $attachments = [];
+
+        if ($request->hasFile('attachments')) {
+            $files = $request->file('attachments');
+
+            foreach ($files as $file) {
+                if ($file->isValid()) {
+                    // Generate unique filename
+                    $originalName = $file->getClientOriginalName();
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = time() . '_' . uniqid() . '_' . preg_replace('/[^A-Za-z0-9\-_.]/', '', $originalName);
+
+                    // Store file in treatment-attachments directory
+                    $path = $file->storeAs(TreatmentRecord::getStoragePath(), $filename, 'public');
+
+                    if ($path) {
+                        $attachments[] = [
+                            'filename' => $originalName,
+                            'path' => $path,
+                            'size' => $file->getSize(),
+                            'uploaded_at' => now()->toISOString(),
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $attachments;
     }
 }

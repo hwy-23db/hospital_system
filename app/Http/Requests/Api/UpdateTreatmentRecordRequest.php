@@ -45,6 +45,8 @@ class UpdateTreatmentRecordRequest extends FormRequest
             'complications' => 'sometimes|nullable|string|max:500',
             'doctor_id' => 'sometimes|nullable|exists:users,id',
             'nurse_id' => 'sometimes|nullable|exists:users,id',
+            'attachments' => 'sometimes|nullable|array|max:10',
+            'attachments.*' => 'file|mimes:pdf|max:5120', // 5MB max per file
         ];
     }
 

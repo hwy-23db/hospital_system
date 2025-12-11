@@ -23,15 +23,15 @@ class StoreAdmissionRequest extends FormRequest
         return [
             // Admission type
             'admission_type' => 'nullable|in:outpatient,inpatient',
-            
+
             // Staff assignment
             'doctor_id' => 'nullable|exists:users,id',
             'nurse_id' => 'nullable|exists:users,id',
-            
+
             // Required admission details
             'admission_date' => 'required|date|before_or_equal:today',
             'admitted_for' => 'required|string|max:500',
-            
+
             // Optional admission details
             'admission_time' => 'nullable|date_format:H:i',
             // Address - accepts JSON string with {region, district, township} or plain text
@@ -55,7 +55,7 @@ class StoreAdmissionRequest extends FormRequest
                 'max:50'
             ],
             'medical_officer' => 'nullable|string|max:255',
-            
+
             // Initial assessment
             'initial_diagnosis' => 'nullable|string|max:500',
             'drug_allergy_noted' => 'nullable|string|max:255',
@@ -81,4 +81,3 @@ class StoreAdmissionRequest extends FormRequest
         ];
     }
 }
-

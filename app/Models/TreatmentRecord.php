@@ -32,6 +32,7 @@ class TreatmentRecord extends Model
         'pre_procedure_notes',
         'post_procedure_notes',
         'complications',
+        'attachments',
     ];
 
     /**
@@ -41,6 +42,7 @@ class TreatmentRecord extends Model
     {
         return [
             'treatment_date' => 'date',
+            'attachments' => 'array', // JSON array of file paths
         ];
     }
 
@@ -136,5 +138,70 @@ class TreatmentRecord extends Model
     public function scopeForAdmission($query, $admissionId)
     {
         return $query->where('admission_id', $admissionId);
+    }
+
+    /**
+     * Get the full URLs for all attachments.
+     */
+    public function getAttachmentUrls(): array
+    {
+        $attachments = $this->attachments ?? [];
+        $urls = [];
+
+        foreach ($attachments as $attachment) {
+            if (isset($attachment['path'])) {
+                $urls[] = [
+                    'filename' => $attachment['filename'] ?? basename($attachment['path']),
+                    'path' => $attachment['path'],
+                    'url' => asset('storage/' . $attachment['path']),
+                    'size' => $attachment['size'] ?? null,
+                    'uploaded_at' => $attachment['uploaded_at'] ?? null,
+                ];
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Add a new attachment to the treatment record.
+     */
+    public function addAttachment(string $filename, string $path, int $size = null): void
+    {
+        $attachments = $this->attachments ?? [];
+        $attachments[] = [
+            'filename' => $filename,
+            'path' => $path,
+            'size' => $size,
+            'uploaded_at' => now()->toISOString(),
+        ];
+
+        $this->update(['attachments' => $attachments]);
+    }
+
+    /**
+     * Remove an attachment by filename.
+     */
+    public function removeAttachment(string $filename): bool
+    {
+        $attachments = $this->attachments ?? [];
+        $updatedAttachments = [];
+
+        foreach ($attachments as $attachment) {
+            if (($attachment['filename'] ?? '') !== $filename) {
+                $updatedAttachments[] = $attachment;
+            }
+        }
+
+        $this->update(['attachments' => $updatedAttachments]);
+        return count($updatedAttachments) < count($attachments);
+    }
+
+    /**
+     * Get the storage path for treatment attachments.
+     */
+    public static function getStoragePath(): string
+    {
+        return 'treatment-attachments';
     }
 }

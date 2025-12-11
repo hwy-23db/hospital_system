@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\TreatmentRecordController;
+use App\Http\Controllers\Api\NrcController;
+use App\Http\Controllers\Api\WardController;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
@@ -68,8 +70,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/treatment-options/types', [TreatmentRecordController::class, 'getTreatmentTypes']);
     Route::get('/treatment-options/outcomes', [TreatmentRecordController::class, 'getOutcomes']);
 
+    // NRC codes (all authenticated users)
+    Route::get('/nrc-codes', [NrcController::class, 'index']);
+
     // Myanmar address data (all authenticated users - for patient and admission forms)
     Route::get('/addresses/myanmar', [PatientController::class, 'getMyanmarAddresses']);
+
+    // Hospital departments (all authenticated users - for admission forms)
+    Route::get('/departments', [PatientController::class, 'getDepartments']);
+
+    // Hospital wards and rooms (all authenticated users - for admission forms)
+    Route::get('/wards', [WardController::class, 'getWards']);
+    Route::get('/wards/{wardKey}/rooms', [WardController::class, 'getRoomsForWard']);
 
     // ==========================================
     // PATIENT MANAGEMENT (Demographic Data)
@@ -127,5 +139,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admissions/{admissionId}/treatments/{recordId}', [TreatmentRecordController::class, 'show']);
     Route::put('/admissions/{admissionId}/treatments/{recordId}', [TreatmentRecordController::class, 'update']);
     Route::patch('/admissions/{admissionId}/treatments/{recordId}', [TreatmentRecordController::class, 'update']);
+    Route::delete('/admissions/{admissionId}/treatments/{recordId}/attachments/{filename}', [TreatmentRecordController::class, 'removeAttachment']);
     // Route::delete('/admissions/{admissionId}/treatments/{recordId}', [TreatmentRecordController::class, 'destroy']); // DISABLED: Treatment record deletion not allowed for data integrity
 });

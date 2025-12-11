@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api;
 
 use App\Models\Patient;
 use App\Rules\MyanmarAddress;
+use App\Rules\MyanmarNrc;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,9 +30,8 @@ class UpdatePatientRequest extends FormRequest
             'name' => 'sometimes|string|max:255',
             'nrc_number' => [
                 'sometimes',
-                'nullable',
-                'string',
-                'max:50',
+                'required',
+                new MyanmarNrc(),
                 Rule::unique('patients', 'nrc_number')->ignore($patientId),
             ],
             'sex' => 'sometimes|nullable|string|in:male,female,other',

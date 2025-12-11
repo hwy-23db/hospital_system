@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api;
 
 use App\Models\Patient;
 use App\Rules\MyanmarAddress;
+use App\Rules\MyanmarNrc;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,7 +29,7 @@ class StorePatientRequest extends FormRequest
             'name' => 'required|string|max:255',
 
             // Basic identification
-            'nrc_number' => 'nullable|string|max:50|unique:patients,nrc_number',
+            'nrc_number' => ['required', new MyanmarNrc(), 'unique:patients,nrc_number'],
             'sex' => 'nullable|string|in:male,female,other',
             'age' => 'nullable|integer|min:0|max:150',
             'dob' => 'nullable|date|before_or_equal:today',
