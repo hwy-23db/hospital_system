@@ -68,6 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/treatment-options/types', [TreatmentRecordController::class, 'getTreatmentTypes']);
     Route::get('/treatment-options/outcomes', [TreatmentRecordController::class, 'getOutcomes']);
 
+    // Myanmar address data (all authenticated users - for patient and admission forms)
+    Route::get('/addresses/myanmar', [PatientController::class, 'getMyanmarAddresses']);
+
     // ==========================================
     // PATIENT MANAGEMENT (Demographic Data)
     // ==========================================

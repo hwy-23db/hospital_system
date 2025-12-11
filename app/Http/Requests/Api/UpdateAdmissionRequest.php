@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Admission;
+use App\Rules\MyanmarAddress;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -35,7 +36,8 @@ class UpdateAdmissionRequest extends FormRequest
             // Admission details (ONLY for active admissions)
             'admission_date' => 'sometimes|date',
             'admission_time' => 'sometimes|nullable|date_format:H:i',
-            'present_address' => 'sometimes|nullable|string|max:500',
+            // Address - accepts JSON string with {region, district, township} or plain text
+            'present_address' => ['sometimes', 'nullable', new MyanmarAddress()],
             'admitted_for' => 'sometimes|string|max:500',
             'referred_by' => 'sometimes|nullable|string|max:255',
             'police_case' => 'sometimes|nullable|string|in:yes,no',

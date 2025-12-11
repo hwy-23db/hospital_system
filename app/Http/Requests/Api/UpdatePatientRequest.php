@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Patient;
+use App\Rules\MyanmarAddress;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,10 +38,10 @@ class UpdatePatientRequest extends FormRequest
             'age' => 'sometimes|nullable|integer|min:0|max:150',
             'dob' => 'sometimes|nullable|date|before_or_equal:today',
             'contact_phone' => 'sometimes|nullable|string|max:20',
-            
-            // Address
-            'permanent_address' => 'sometimes|nullable|string|max:500',
-            
+
+            // Address - accepts JSON string with {region, district, township} or plain text
+            'permanent_address' => ['sometimes', 'nullable', new MyanmarAddress()],
+
             // Personal details
             'marital_status' => 'sometimes|nullable|string|in:single,married,divorced,widowed,other',
             'ethnic_group' => 'sometimes|nullable|string|max:100',
@@ -48,12 +49,12 @@ class UpdatePatientRequest extends FormRequest
             'occupation' => 'sometimes|nullable|string|max:100',
             'father_name' => 'sometimes|nullable|string|max:255',
             'mother_name' => 'sometimes|nullable|string|max:255',
-            
+
             // Emergency contact
             'nearest_relative_name' => 'sometimes|nullable|string|max:255',
             'nearest_relative_phone' => 'sometimes|nullable|string|max:20',
             'relationship' => 'sometimes|nullable|string|max:50',
-            
+
             // Medical info (permanent)
             'blood_type' => ['sometimes', 'nullable', Rule::in(Patient::bloodTypes())],
             'known_allergies' => 'sometimes|nullable|string|max:500',

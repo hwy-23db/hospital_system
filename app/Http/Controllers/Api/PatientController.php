@@ -416,6 +416,20 @@ class PatientController extends Controller
     }
 
     /**
+     * Get Myanmar regions, districts, and townships for address selection.
+     * Available to all authenticated users for patient and admission forms.
+     */
+    public function getMyanmarAddresses(Request $request): JsonResponse
+    {
+        $addresses = config('myanmar_addresses.addresses');
+
+        return response()->json([
+            'message' => 'Myanmar addresses retrieved successfully',
+            'data' => $addresses,
+        ]);
+    }
+
+    /**
      * Check if user can access a patient's data.
      */
     private function canAccessPatient($user, Patient $patient): bool

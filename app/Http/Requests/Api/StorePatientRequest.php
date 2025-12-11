@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api;
 
 use App\Models\Patient;
+use App\Rules\MyanmarAddress;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,17 +26,17 @@ class StorePatientRequest extends FormRequest
         return [
             // Required fields
             'name' => 'required|string|max:255',
-            
+
             // Basic identification
             'nrc_number' => 'nullable|string|max:50|unique:patients,nrc_number',
             'sex' => 'nullable|string|in:male,female,other',
             'age' => 'nullable|integer|min:0|max:150',
             'dob' => 'nullable|date|before_or_equal:today',
             'contact_phone' => 'nullable|string|max:20',
-            
-            // Address
-            'permanent_address' => 'nullable|string|max:500',
-            
+
+            // Address - accepts JSON string with {region, district, township} or plain text
+            'permanent_address' => ['nullable', new MyanmarAddress()],
+
             // Personal details
             'marital_status' => 'nullable|string|in:single,married,divorced,widowed,other',
             'ethnic_group' => 'nullable|string|max:100',
@@ -43,12 +44,12 @@ class StorePatientRequest extends FormRequest
             'occupation' => 'nullable|string|max:100',
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
-            
+
             // Emergency contact
             'nearest_relative_name' => 'nullable|string|max:255',
             'nearest_relative_phone' => 'nullable|string|max:20',
             'relationship' => 'nullable|string|max:50',
-            
+
             // Medical info (permanent)
             'blood_type' => ['nullable', Rule::in(Patient::bloodTypes())],
             'known_allergies' => 'nullable|string|max:500',

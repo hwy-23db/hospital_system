@@ -636,32 +636,77 @@ GET /api/patients/search?q=123456
 
 #### Request Parameters
 
-| Field                    | Type          | Required   | Constraints    | Accepted Values                                     | Description                                        |
-| ------------------------ | ------------- | ---------- | -------------- | --------------------------------------------------- | -------------------------------------------------- |
+| Field                    | Type          | Required   | Constraints    | Accepted Values                                                               | Description                                                       |
+| ------------------------ | ------------- | ---------- | -------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | **Basic Information**    |
-| `name`                   | string        | ✅ **Yes** | max:255        | Any text                                            | Patient's full name                                |
-| `nrc_number`             | string        | No         | max:50, unique | e.g., "12/ABC(N)123456"                             | National Registration Card number (must be unique) |
-| `sex`                    | string        | No         | -              | `male`, `female`, `other`                           | Patient's gender                                   |
-| `age`                    | integer       | No         | 0-150          | Positive integer                                    | Patient's age in years                             |
-| `dob`                    | date          | No         | <= today       | YYYY-MM-DD                                          | Date of birth (cannot be in future)                |
-| `contact_phone`          | string        | No         | max:20         | e.g., "09123456789"                                 | Primary contact phone number                       |
+| `name`                   | string        | ✅ **Yes** | max:255        | Any text                                                                      | Patient's full name                                               |
+| `nrc_number`             | string        | No         | max:50, unique | e.g., "12/ABC(N)123456"                                                       | National Registration Card number (must be unique)                |
+| `sex`                    | string        | No         | -              | `male`, `female`, `other`                                                     | Patient's gender                                                  |
+| `age`                    | integer       | No         | 0-150          | Positive integer                                                              | Patient's age in years                                            |
+| `dob`                    | date          | No         | <= today       | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                               |
+| `contact_phone`          | string        | No         | max:20         | e.g., "09123456789"                                                           | Primary contact phone number                                      |
 | **Address**              |
-| `permanent_address`      | string (text) | No         | max:500        | Any text                                            | Permanent residential address                      |
+| `permanent_address`      | string (JSON) | No         | Validated      | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list) |
 | **Personal Details**     |
-| `marital_status`         | string        | No         | -              | `single`, `married`, `divorced`, `widowed`, `other` | Marital status                                     |
-| `ethnic_group`           | string        | No         | max:100        | e.g., "Bamar", "Shan"                               | Ethnic background                                  |
-| `religion`               | string        | No         | max:100        | e.g., "Buddhist", "Christian"                       | Religious affiliation                              |
-| `occupation`             | string        | No         | max:100        | Any text                                            | Current occupation                                 |
-| `father_name`            | string        | No         | max:255        | Any text                                            | Father's name                                      |
-| `mother_name`            | string        | No         | max:255        | Any text                                            | Mother's name                                      |
+| `marital_status`         | string        | No         | -              | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                    |
+| `ethnic_group`           | string        | No         | max:100        | e.g., "Bamar", "Shan"                                                         | Ethnic background                                                 |
+| `religion`               | string        | No         | max:100        | e.g., "Buddhist", "Christian"                                                 | Religious affiliation                                             |
+| `occupation`             | string        | No         | max:100        | Any text                                                                      | Current occupation                                                |
+| `father_name`            | string        | No         | max:255        | Any text                                                                      | Father's name                                                     |
+| `mother_name`            | string        | No         | max:255        | Any text                                                                      | Mother's name                                                     |
 | **Emergency Contact**    |
-| `nearest_relative_name`  | string        | No         | max:255        | Any text                                            | Emergency contact person name                      |
-| `nearest_relative_phone` | string        | No         | max:20         | e.g., "09987654321"                                 | Emergency contact phone number                     |
-| `relationship`           | string        | No         | max:50         | e.g., "spouse", "parent"                            | Relationship to patient                            |
+| `nearest_relative_name`  | string        | No         | max:255        | Any text                                                                      | Emergency contact person name                                     |
+| `nearest_relative_phone` | string        | No         | max:20         | e.g., "09987654321"                                                           | Emergency contact phone number                                    |
+| `relationship`           | string        | No         | max:50         | e.g., "spouse", "parent"                                                      | Relationship to patient                                           |
 | **Medical Information**  |
-| `blood_type`             | string        | No         | -              | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`    | Blood type (must be valid type)                    |
-| `known_allergies`        | string (text) | No         | max:500        | Comma-separated list                                | Known drug/food allergies                          |
-| `chronic_conditions`     | string (text) | No         | max:500        | Comma-separated list                                | Chronic medical conditions                         |
+| `blood_type`             | string        | No         | -              | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                   |
+| `known_allergies`        | string (text) | No         | max:500        | Comma-separated list                                                          | Known drug/food allergies                                         |
+| `chronic_conditions`     | string (text) | No         | max:500        | Comma-separated list                                                          | Chronic medical conditions                                        |
+
+**Address Validation Note:**
+
+The `permanent_address` field accepts addresses in two formats:
+
+1. **Structured JSON (Recommended):** Validates against Myanmar addresses list
+
+    ```json
+    {
+        "region": "Yangon Region",
+        "district": "East Yangon",
+        "township": "Tamwe"
+    }
+    ```
+
+    - All three fields (region, district, township) must match the Myanmar addresses list
+    - Use `GET /api/addresses/myanmar` to get valid options
+    - Region, district, and township are validated hierarchically
+
+2. **Plain Text (Backward Compatible):** Accepts any text string
+    - For existing data compatibility
+    - Structured JSON is preferred for new entries
+
+**Response Format Note:**
+
+The response structure for all endpoints (list patients, get patient details, list admissions, get admission details) **remains unchanged**. However, address fields (`permanent_address` and `present_address`) in responses will contain whatever format was stored:
+
+-   **If structured JSON was sent:** Response will contain a JSON string: `"{\"region\": \"Yangon Region\", \"district\": \"East Yangon\", \"township\": \"Tamwe\"}"`
+-   **If plain text was sent:** Response will contain plain text: `"123 Main Street, Yangon"`
+
+Frontend applications should handle both formats when displaying address data. To parse structured addresses:
+
+```javascript
+// Handle both formats
+let addressDisplay = "";
+if (patient.permanent_address) {
+    try {
+        const address = JSON.parse(patient.permanent_address);
+        addressDisplay = `${address.township}, ${address.district}, ${address.region}`;
+    } catch (e) {
+        // Not JSON, use as plain text
+        addressDisplay = patient.permanent_address;
+    }
+}
+```
 
 #### Example Request
 
@@ -673,7 +718,7 @@ GET /api/patients/search?q=123456
     "age": 45,
     "dob": "1979-05-15",
     "contact_phone": "09123456789",
-    "permanent_address": "123 Main Street, Yangon",
+    "permanent_address": "{\"region\": \"Yangon Region\", \"district\": \"East Yangon\", \"township\": \"Tamwe\"}",
     "marital_status": "married",
     "ethnic_group": "Bamar",
     "religion": "Buddhist",
@@ -1136,30 +1181,61 @@ The system checks if a patient is deceased **before** creating any new admission
 
 #### Request Parameters
 
-| Field                         | Type          | Required                                                 | Constraints                                  | Accepted Values               | Description                                                                         |
-| ----------------------------- | ------------- | -------------------------------------------------------- | -------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------- |
+| Field                         | Type          | Required                                                 | Constraints                                  | Accepted Values                                                               | Description                                                                         |
+| ----------------------------- | ------------- | -------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | **Admission Type**            |
-| `admission_type`              | string        | No                                                       | Default: `inpatient`                         | `outpatient`, `inpatient`     | Type of admission                                                                   |
+| `admission_type`              | string        | No                                                       | Default: `inpatient`                         | `outpatient`, `inpatient`                                                     | Type of admission                                                                   |
 | **Staff Assignment**          |
-| `doctor_id`                   | integer       | No                                                       | Must exist in users table with role=`doctor` | User ID                       | ID of doctor to assign (from users table)                                           |
-| `nurse_id`                    | integer       | No                                                       | Must exist in users table with role=`nurse`  | User ID                       | ID of nurse to assign (from users table)                                            |
+| `doctor_id`                   | integer       | No                                                       | Must exist in users table with role=`doctor` | User ID                                                                       | ID of doctor to assign (from users table)                                           |
+| `nurse_id`                    | integer       | No                                                       | Must exist in users table with role=`nurse`  | User ID                                                                       | ID of nurse to assign (from users table)                                            |
 | **Required Fields**           |
-| `admission_date`              | date          | ✅ **Yes**                                               | <= today                                     | YYYY-MM-DD                    | Date of admission (cannot be future)                                                |
-| `admitted_for`                | string        | ✅ **Yes**                                               | max:500                                      | Any text                      | Chief complaint / reason for admission                                              |
+| `admission_date`              | date          | ✅ **Yes**                                               | <= today                                     | YYYY-MM-DD                                                                    | Date of admission (cannot be future)                                                |
+| `admitted_for`                | string        | ✅ **Yes**                                               | max:500                                      | Any text                                                                      | Chief complaint / reason for admission                                              |
 | **Location (Inpatient Only)** |
-| `ward`                        | string        | **Required for inpatient**<br>**BLOCKED for outpatient** | max:100, prohibited_if:outpatient            | e.g., "Ward A", "ICU"         | Ward/department (required for inpatient, cannot be specified for outpatient)        |
-| `bed_number`                  | string        | **Optional for inpatient**<br>**BLOCKED for outpatient** | max:50, prohibited_if:outpatient             | e.g., "12", "A-15"            | Bed number within ward (optional for inpatient, cannot be specified for outpatient) |
+| `ward`                        | string        | **Required for inpatient**<br>**BLOCKED for outpatient** | max:100, prohibited_if:outpatient            | e.g., "Ward A", "ICU"                                                         | Ward/department (required for inpatient, cannot be specified for outpatient)        |
+| `bed_number`                  | string        | **Optional for inpatient**<br>**BLOCKED for outpatient** | max:50, prohibited_if:outpatient             | e.g., "12", "A-15"                                                            | Bed number within ward (optional for inpatient, cannot be specified for outpatient) |
 | **Additional Details**        |
-| `admission_time`              | time          | No                                                       | HH:mm format                                 | e.g., "10:30"                 | Time of admission                                                                   |
-| `present_address`             | string (text) | No                                                       | max:500                                      | Any text                      | Current address at time of admission                                                |
-| `referred_by`                 | string        | No                                                       | max:255                                      | Any text                      | Referring doctor/hospital                                                           |
-| `police_case`                 | string        | No                                                       | -                                            | `yes`, `no`                   | Whether this is a police/legal case                                                 |
-| `service`                     | string        | No                                                       | max:255                                      | e.g., "Cardiology", "Surgery" | Medical department/service                                                          |
-| `medical_officer`             | string        | No                                                       | max:255                                      | Any text                      | Name of medical officer                                                             |
+| `admission_time`              | time          | No                                                       | HH:mm format                                 | e.g., "10:30"                                                                 | Time of admission                                                                   |
+| `present_address`             | string (JSON) | No                                                       | Validated                                    | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Current address at time of admission (must match Myanmar addresses list)            |
+| `referred_by`                 | string        | No                                                       | max:255                                      | Any text                                                                      | Referring doctor/hospital                                                           |
+| `police_case`                 | string        | No                                                       | -                                            | `yes`, `no`                                                                   | Whether this is a police/legal case                                                 |
+| `service`                     | string        | No                                                       | max:255                                      | e.g., "Cardiology", "Surgery"                                                 | Medical department/service                                                          |
+| `medical_officer`             | string        | No                                                       | max:255                                      | Any text                                                                      | Name of medical officer                                                             |
 | **Initial Assessment**        |
-| `initial_diagnosis`           | string (text) | No                                                       | max:500                                      | Any text                      | Initial diagnosis/assessment                                                        |
-| `drug_allergy_noted`          | string        | No                                                       | max:255                                      | Comma-separated               | Allergies noted at admission                                                        |
-| `remarks`                     | string (text) | No                                                       | max:500                                      | Any text                      | Additional remarks/notes                                                            |
+| `initial_diagnosis`           | string (text) | No                                                       | max:500                                      | Any text                                                                      | Initial diagnosis/assessment                                                        |
+| `drug_allergy_noted`          | string        | No                                                       | max:255                                      | Comma-separated                                                               | Allergies noted at admission                                                        |
+| `remarks`                     | string (text) | No                                                       | max:500                                      | Any text                                                                      | Additional remarks/notes                                                            |
+
+**Address Validation Note:**
+
+The `present_address` field accepts addresses in two formats:
+
+1. **Structured JSON (Recommended):** Validates against Myanmar addresses list
+
+    ```json
+    {
+        "region": "Mandalay Region",
+        "district": "Mandalay",
+        "township": "Amarapura"
+    }
+    ```
+
+    - All three fields (region, district, township) must match the Myanmar addresses list
+    - Use `GET /api/addresses/myanmar` to get valid options
+    - Region, district, and township are validated hierarchically
+
+2. **Plain Text (Backward Compatible):** Accepts any text string
+    - For existing data compatibility
+    - Structured JSON is preferred for new entries
+
+**Response Format Note:**
+
+The response structure for all endpoints (list admissions, get admission details) **remains unchanged**. However, the `present_address` field in responses will contain whatever format was stored:
+
+-   **If structured JSON was sent:** Response will contain a JSON string: `"{\"region\": \"Mandalay Region\", \"district\": \"Mandalay\", \"township\": \"Amarapura\"}"`
+-   **If plain text was sent:** Response will contain plain text: `"456 Current Address"`
+
+Frontend applications should handle both formats when displaying address data.
 
 #### Example Requests
 
@@ -1173,7 +1249,7 @@ The system checks if a patient is deceased **before** creating any new admission
     "admitted_for": "Chest pain and shortness of breath",
     "doctor_id": 2, // User ID from users table (role must be 'doctor')
     "nurse_id": 3, // User ID from users table (role must be 'nurse')
-    "present_address": "456 Current Address",
+    "present_address": "{\"region\": \"Mandalay Region\", \"district\": \"Mandalay\", \"township\": \"Amarapura\"}",
     "referred_by": "Township Hospital",
     "police_case": "no",
     "service": "Cardiology",
@@ -1210,7 +1286,7 @@ The system checks if a patient is deceased **before** creating any new admission
     "service": "Cardiology",
     "initial_diagnosis": "Post-discharge follow-up",
     "remarks": "Patient doing well",
-    "present_address": "Same as permanent"
+    "present_address": "{\"region\": \"Yangon Region\", \"district\": \"West Yangon(Downtown)\", \"township\": \"Sanchaung\"}"
 }
 
 #### Success Response (201 Created)
@@ -1375,7 +1451,7 @@ Returns full admission details with patient information, assigned staff, and all
         "admission_type": "inpatient",
         "admission_date": "2024-12-03",
         "admission_time": "14:30:00",
-        "present_address": "123 Main Street, Yangon",
+        "present_address": "{\"region\": \"Yangon Region\", \"district\": \"East Yangon\", \"township\": \"Tamwe\"}",
         "admitted_for": "Chest pain and shortness of breath",
         "referred_by": "Dr. John Referrer",
         "police_case": "no",
@@ -1419,7 +1495,7 @@ Returns full admission details with patient information, assigned staff, and all
             "age": 45,
             "dob": "1979-05-15",
             "contact_phone": "09123456789",
-            "permanent_address": "456 Permanent Street, Yangon",
+            "permanent_address": "{\"region\": \"Yangon Region\", \"district\": \"West Yangon(Downtown)\", \"township\": \"Sanchaung\"}",
             "marital_status": "married",
             "ethnic_group": "Bamar",
             "religion": "Buddhist",
@@ -1679,38 +1755,38 @@ The following fields **CANNOT** be changed via this endpoint. Use dedicated endp
 
 #### Request Parameters (Detailed)
 
-| Field                        | Type    | Constraints               | Accepted Values         | Description                 |
-| ---------------------------- | ------- | ------------------------- | ----------------------- | --------------------------- |
+| Field                        | Type          | Constraints               | Accepted Values                                                               | Description                                         |
+| ---------------------------- | ------------- | ------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
 | **Staff Assignment**         |
-| `doctor_id`                  | integer | Must exist in users table | User ID (role=`doctor`) | Reassign doctor             |
-| `nurse_id`                   | integer | Must exist in users table | User ID (role=`nurse`)  | Reassign nurse              |
+| `doctor_id`                  | integer       | Must exist in users table | User ID (role=`doctor`)                                                       | Reassign doctor                                     |
+| `nurse_id`                   | integer       | Must exist in users table | User ID (role=`nurse`)                                                        | Reassign nurse                                      |
 | **Admission Details**        |
-| `admission_date`             | date    | YYYY-MM-DD                | Past or today           | Update admission date       |
-| `admission_time`             | time    | HH:mm                     | e.g., "10:30"           | Update admission time       |
-| `present_address`            | string  | max:500                   | Any text                | Current address             |
-| `admitted_for`               | string  | max:500                   | Any text                | Chief complaint             |
-| `referred_by`                | string  | max:255                   | Any text                | Referring doctor/hospital   |
-| `police_case`                | string  | -                         | `yes`, `no`             | Police case status          |
-| `service`                    | string  | max:255                   | Any text                | Department/service          |
-| `ward`                       | string  | max:100                   | Any text                | Ward name                   |
-| `bed_number`                 | string  | max:50                    | Any text                | Bed number                  |
-| `medical_officer`            | string  | max:255                   | Any text                | Medical officer name        |
+| `admission_date`             | date          | YYYY-MM-DD                | Past or today                                                                 | Update admission date                               |
+| `admission_time`             | time          | HH:mm                     | e.g., "10:30"                                                                 | Update admission time                               |
+| `present_address`            | string (JSON) | Validated                 | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Current address (must match Myanmar addresses list) |
+| `admitted_for`               | string        | max:500                   | Any text                                                                      | Chief complaint                                     |
+| `referred_by`                | string        | max:255                   | Any text                                                                      | Referring doctor/hospital                           |
+| `police_case`                | string        | -                         | `yes`, `no`                                                                   | Police case status                                  |
+| `service`                    | string        | max:255                   | Any text                                                                      | Department/service                                  |
+| `ward`                       | string        | max:100                   | Any text                                                                      | Ward name                                           |
+| `bed_number`                 | string        | max:50                    | Any text                                                                      | Bed number                                          |
+| `medical_officer`            | string        | max:255                   | Any text                                                                      | Medical officer name                                |
 | **Medical Assessment**       |
-| `initial_diagnosis`          | string  | max:500                   | Any text                | Initial diagnosis           |
-| `drug_allergy_noted`         | string  | max:255                   | Any text                | Allergies                   |
-| `remarks`                    | string  | max:500                   | Any text                | Additional remarks/notes    |
-| `clinician_summary`          | string  | max:1000                  | Any text                | Clinical summary            |
-| `surgical_procedure`         | string  | max:500                   | Any text                | If surgery performed        |
-| `other_diagnosis`            | string  | max:500                   | Any text                | Other conditions found      |
-| `external_cause_of_injury`   | string  | max:500                   | Any text                | If injury case              |
-| `discharge_diagnosis`        | string  | max:500                   | Any text                | Final diagnosis             |
+| `initial_diagnosis`          | string        | max:500                   | Any text                                                                      | Initial diagnosis                                   |
+| `drug_allergy_noted`         | string        | max:255                   | Any text                                                                      | Allergies                                           |
+| `remarks`                    | string        | max:500                   | Any text                                                                      | Additional remarks/notes                            |
+| `clinician_summary`          | string        | max:1000                  | Any text                                                                      | Clinical summary                                    |
+| `surgical_procedure`         | string        | max:500                   | Any text                                                                      | If surgery performed                                |
+| `other_diagnosis`            | string        | max:500                   | Any text                                                                      | Other conditions found                              |
+| `external_cause_of_injury`   | string        | max:500                   | Any text                                                                      | If injury case                                      |
+| `discharge_diagnosis`        | string        | max:500                   | Any text                                                                      | Final diagnosis                                     |
 | **Follow-up Information**    |
-| `discharge_instructions`     | string  | max:1000                  | Any text                | Instructions for patient    |
-| `follow_up_instructions`     | string  | max:500                   | Any text                | Follow-up care instructions |
-| `follow_up_date`             | date    | >= today                  | YYYY-MM-DD              | Next appointment date       |
+| `discharge_instructions`     | string        | max:1000                  | Any text                                                                      | Instructions for patient                            |
+| `follow_up_instructions`     | string        | max:500                   | Any text                                                                      | Follow-up care instructions                         |
+| `follow_up_date`             | date          | >= today                  | YYYY-MM-DD                                                                    | Next appointment date                               |
 | **Certification**            |
-| `attending_doctor_name`      | string  | max:255                   | Any text                | Attending doctor            |
-| `attending_doctor_signature` | string  | max:255                   | Any text                | Signature                   |
+| `attending_doctor_name`      | string        | max:255                   | Any text                                                                      | Attending doctor                                    |
+| `attending_doctor_signature` | string        | max:255                   | Any text                                                                      | Signature                                           |
 
 #### Example Requests
 
@@ -1728,7 +1804,7 @@ Update all administrative and location details:
     "bed_number": "3",
     "service": "Cardiology",
     "medical_officer": "Dr. Kyaw Soe",
-    "present_address": "No. 123, Main Road, Yangon",
+    "present_address": "{\"region\": \"Yangon Region\", \"district\": \"North Yangon\", \"township\": \"Insein\"}",
     "admitted_for": "Chest pain and shortness of breath",
     "referred_by": "Yangon General Hospital - Dr. Zaw Win",
     "police_case": "no"
@@ -3468,6 +3544,503 @@ Content-Type: application/json
 **Endpoint:** `GET /api/treatment-options/outcomes`
 
 **Authorization:** All authenticated users
+
+### 35. Get Myanmar Addresses
+
+**Endpoint:** `GET /api/addresses/myanmar`
+
+**Authorization:** All authenticated users
+
+**Description:** Returns a structured list of all Myanmar regions, districts, and townships for address selection in patient and admission forms.
+
+**Response Structure:**
+The response follows a three-level hierarchy: **Region → District → Township**
+
+**Detailed Response Example:**
+
+```json
+{
+    "message": "Myanmar addresses retrieved successfully",
+    "data": {
+        "Magway Region": {
+            "Gangaw": ["Gangaw", "Kyaukhtu", "Saw", "Tilin"],
+            "Magway": [
+                "Chauck",
+                "Magway",
+                "Myothit",
+                "Natmauk",
+                "Taungdwingyi",
+                "Yenangyaung"
+            ],
+            "Minbu": ["Minbu", "Ngape", "Pwintbyu", "Salin", "Sidoktaya"],
+            "Pakokku": ["Myaing", "Pakokku", "Pauk", "Seikphyu", "Yesagyo"],
+            "Thayet": [
+                "Aunglan",
+                "Kamma",
+                "Mindon",
+                "Minhla",
+                "Sinbaungwe",
+                "Thayet"
+            ]
+        },
+        "Mandalay Region": {
+            "Kyaukse": ["Kyaukse", "Myittha", "Sintgaing", "Tada-U"],
+            "Mandalay": [
+                "Amarapura",
+                "Aungmyethazan",
+                "Chanayethazan",
+                "Chanmyathazi",
+                "Mahaaungmye",
+                "Patheingyi",
+                "Pyigyidagun"
+            ],
+            "Meiktila": ["Mahlaing", "Meiktila", "Thazi", "Wundwin"],
+            "Myingyan": ["Myingyan", "Natogyi", "Nganzun", "Thaungtha"],
+            "Nyaung-U": ["Kyaukpadaung", "Ngathayauk", "Nyaung-U"],
+            "Pyinoolwin": [
+                "Madaya",
+                "Mogok",
+                "Pyinoolwin",
+                "Singu",
+                "Tagaung",
+                "Thabeikkyin"
+            ],
+            "Yamethin": ["Pyawbwe", "Yamethin"]
+        },
+        "Naypyidaw Union Territory": {
+            "Dekkhina(South Naypyidaw)": [
+                "Dekkhinathiri",
+                "Lewe",
+                "Pyinmana",
+                "Zabuthiri"
+            ],
+            "Ottara(North Naypyidaw)": [
+                "Ottarathiri",
+                "Pobbathiri",
+                "Tatkon",
+                "Zeyarthiri"
+            ]
+        },
+        "Kayah State": {
+            "Bawlakhe": ["Bawlakhe", "Hpasawng", "Mese", "Ywathit"],
+            "Loikaw": ["Demoso", "Hpruso", "Loikaw", "Shadaw"]
+        },
+        "Shan State": {
+            "Kengtung": [
+                "Kengtung",
+                "Mine Pauk",
+                "Minelar",
+                "Mong Khet",
+                "Mong La",
+                "Mong Yang"
+            ],
+            "Mong Hpayak": ["Mineyu", "Mong Hpayak", "Mong Yawng"],
+            "Mong Hsat": [
+                "Minekoke",
+                "Monehta",
+                "Mong Hsat",
+                "Mong Ping",
+                "Mong Tong",
+                "Ponparkyin",
+                "Tontar"
+            ],
+            "Tachileik": ["Kyaing Lap", "Tachileik", "Talay"],
+            "Kunlong": ["Kunlong"],
+            "Kyaukme": [
+                "Hsipaw",
+                "Kyaukme",
+                "Mantong",
+                "Minelon",
+                "Minengaw",
+                "Namhsan",
+                "Namtu",
+                "Nawnghkio"
+            ],
+            "Lashio": ["Hsenwi", "Lashio", "Mongyai", "Tangyan"],
+            "Laukkaing": ["Chinshwehaw", "Konkyan", "Laukkaing", "Mawhtike"],
+            "Mu Se": [
+                "Kutkai",
+                "Manhero",
+                "Monekoe",
+                "Mu Se",
+                "Namhkam",
+                "Pansai",
+                "Tamoenye"
+            ],
+            "Hopang": ["Hopang", "Mongmao", "Namtit", "Pangwaun", "Panlong"],
+            "Matman": [
+                "Man Kan",
+                "Matman",
+                "Namphan",
+                "Pangsang Township (Pan"
+            ],
+            "Mongmit": ["Mabein", "Mongmit"],
+            "Langkho": [
+                "Homane",
+                "Kengtaung",
+                "Langkho",
+                "Mawkmai",
+                "Mong Nai",
+                "Mong Pan"
+            ],
+            "Loilen": [
+                "Karli",
+                "Kholan",
+                "Kunhing",
+                "Kyethi",
+                "Lai-Hka",
+                "Loilen",
+                "Minenaung",
+                "Minesan",
+                "Mong Hsu",
+                "Mong Kung",
+                "Nansang",
+                "Panglong"
+            ],
+            "Taunggyi": [
+                "Hopong",
+                "Hsi Hseng",
+                "Indaw",
+                "Kalaw",
+                "Kyauktalongyi",
+                "Lawksawk",
+                "Naungtayar",
+                "Nyaungshwe",
+                "Pekon",
+                "Pingdaya",
+                "Pinlaung",
+                "Taunggyi",
+                "Ywangan"
+            ]
+        },
+        "Ayeyarwady Region": {
+            "Hinthada": [
+                "Hinthada",
+                "Ingapu",
+                "Kyangin",
+                "Lemyethna",
+                "Myanaung",
+                "Zalun"
+            ],
+            "Labutta": ["Labutta", "Mawlamyinegyun", "Pyinsalu"],
+            "Ma-ubin": ["Danuphyu", "Ma-ubin", "Nyaungdon", "Pantanaw"],
+            "Myaungmya": ["Einme", "Myaungmya", "Wakema"],
+            "Pathein": [
+                "Hainggyikyun",
+                "Kangyidaunk",
+                "Kyaunggon",
+                "Kyonpyaw",
+                "Ngapudaw",
+                "Ngathaingchaung",
+                "Ngayokaung",
+                "Ngwehsaung",
+                "Pathein",
+                "Shwethaungyan",
+                "Thabaung",
+                "Yekyi"
+            ],
+            "Pyapon": ["Ahmar", "Bogale", "Dedaye", "Kyaiklat", "Pyapon"]
+        },
+        "Bago Region": {
+            "Bago": [
+                "Aungmyin",
+                "Bago",
+                "Daik-U",
+                "Hpayargyi",
+                "Intagaw",
+                "Kawa",
+                "Kyauktaga",
+                "Madauk",
+                "Nyaunglebin",
+                "Peinzalot",
+                "Penwegon",
+                "Pyuntaza",
+                "Shwegyin",
+                "Thanatpin",
+                "Waw"
+            ],
+            "Taungoo": [
+                "Kanyutkwin",
+                "Kaytumadi",
+                "Kyaukkyi",
+                "Kywebwe",
+                "Mone",
+                "Myohla",
+                "Natthangwin",
+                "Nyaungbinthar",
+                "Oktwin",
+                "Pyu",
+                "Swa",
+                "Tantabin",
+                "Taungoo",
+                "Thagara",
+                "Yaeni",
+                "Yedashe"
+            ],
+            "Pyay": [
+                "Innma",
+                "Okshipin",
+                "Padaung",
+                "Padigone",
+                "Paukkaung",
+                "Paungdale",
+                "Paungde",
+                "Pyay",
+                "Shwedaung",
+                "Sinmeswe",
+                "Thegon"
+            ],
+            "Thayarwady": [
+                "Gyobingauk",
+                "Letpadan",
+                "Minhla",
+                "Monyo",
+                "Nattalin",
+                "Okpho",
+                "Ooethegone",
+                "Sitkwin",
+                "Tapun",
+                "Tharrawaddy",
+                "Thonze",
+                "Zigon"
+            ]
+        },
+        "Yangon Region": {
+            "East Yangon": [
+                "Botataung",
+                "City",
+                "Dagon Seikkan",
+                "Dawbon",
+                "East Dagon",
+                "Mingala Taungnyunt",
+                "North Dagon",
+                "North Okkalapa",
+                "Pazundaung",
+                "South Dagon",
+                "South Okkalapa",
+                "Tamwe",
+                "Thaketa",
+                "Thingangyun",
+                "Yankin"
+            ],
+            "North Yangon": [
+                "City",
+                "Hlaingthaya",
+                "Hlegu",
+                "Hmawbi",
+                "Htantabin",
+                "Insein",
+                "Mingaladon",
+                "Rural",
+                "Shwepyitha",
+                "Taikkyi"
+            ],
+            "South Yangon": [
+                "City",
+                "Cocokyun",
+                "Dala",
+                "Kawhmu",
+                "Kayan",
+                "Kungyangon",
+                "Kyauktan",
+                "Rural",
+                "Seikkyi Kanaungto",
+                "Tada",
+                "Thanlyin",
+                "Thongwa",
+                "Twante"
+            ],
+            "West Yangon(Downtown)": [
+                "Ahlon",
+                "Bahan",
+                "City",
+                "Dagon",
+                "Hlaing",
+                "Kamayut",
+                "Kyauktada",
+                "Kyimyindaing",
+                "Lanmadaw",
+                "Latha",
+                "Mayangon",
+                "Pabedan",
+                "Sanchaung",
+                "Seikkan"
+            ]
+        },
+        "Kachin State": {
+            "Bhamo": [
+                "Bhamo",
+                "Dotphoneyan",
+                "Lwegel",
+                "Mansi",
+                "Momauk",
+                "Myohla",
+                "Shwegu"
+            ],
+            "Mohnyin": ["Hopin", "Hpakant", "Kamine", "Mogaung", "Mohnyin"],
+            "Myitkyina": [
+                "Chipwi",
+                "Hsadone",
+                "Hsawlaw",
+                "Hsinbo",
+                "Injangyang",
+                "Kanpaikti",
+                "Myitkyina",
+                "Panwa",
+                "Shinbwayyan",
+                "Tanai",
+                "Waingmaw"
+            ],
+            "Putao": [
+                "Kawnglanghpu",
+                "Machanbaw",
+                "Nogmung",
+                "Pannandin",
+                "Putao",
+                "Sumprabum"
+            ]
+        },
+        "Sagaing Region": {
+            "Hkamti": [
+                "Donhee",
+                "Hkamti",
+                "Homalin",
+                "Htanparkway",
+                "Lahe",
+                "Leshi Township (Lay",
+                "Mobaingluk",
+                "Nanyun",
+                "Pansaung",
+                "Sonemara"
+            ],
+            "Kanbalu": ["Kanbalu", "Kyunhla", "Taze", "Ye-U"],
+            "Kale": ["Kale", "Kalewa", "Mingin"],
+            "Katha": [
+                "Banmauk",
+                "Indaw",
+                "Katha",
+                "Kawlin",
+                "Pinlebu",
+                "Tigyaing",
+                "Wuntho"
+            ],
+            "Mawlaik": ["Mawlaik", "Paungbyin"],
+            "Monywa": ["Ayadaw", "Budalin", "Chaung-U", "Monywa"],
+            "Sagaing": ["Myaung", "Myinmu", "Sagaing"],
+            "Shwebo": ["Khin-U", "Kyaukmyaung", "Shwebo", "Tabayin", "Wetlet"],
+            "Tamu": ["Khampat", "Myothit", "Tamu"],
+            "Yinmabin": ["Kani", "Pale", "Salingyi", "Yinmabin"]
+        },
+        "Kayin State": {
+            "Hpa-an": [
+                "Bawgali",
+                "Hlaignbwe",
+                "Hpa-an",
+                "Leiktho",
+                "Paingkyon",
+                "Shan Ywathit",
+                "Thandaunggyi"
+            ],
+            "Hpapun": ["Hpapun", "Kamamaung"],
+            "Kawkareik": [
+                "Kawkareik",
+                "Kyaidon",
+                "Kyain Seikgyi",
+                "Payarthonezu"
+            ],
+            "Myawaddy": ["Myawaddy", "Sugali", "Wawlaymyaing"]
+        },
+        "Mon State": {
+            "Mawlamyine": [
+                "Chaungzon",
+                "Khawzar",
+                "Kyaikkhami",
+                "Kyaikmaraw",
+                "Lamine",
+                "Mawlamyine",
+                "Mudon",
+                "Thanbyuzayat",
+                "Ye"
+            ],
+            "Thaton": [
+                "Bilin",
+                "Kyaikto",
+                "Mottama",
+                "Paung",
+                "Suvannawadi",
+                "Thaton",
+                "Zingyeik"
+            ]
+        },
+        "Tanintharyi Region": {
+            "Dawei": [
+                "Dawei",
+                "Kaleinaung",
+                "Launglon",
+                "Myitta",
+                "Thayetchaung",
+                "Yebyu"
+            ],
+            "Kawthoung": [
+                "Bokpyin",
+                "Karathuri",
+                "Kawthoung",
+                "Khamaukgyi",
+                "Pyigyimandaing"
+            ],
+            "Myeik": ["Kyunsu", "Myeik", "Palauk", "Palaw", "Tanintharyi"]
+        },
+        "Chin State": {
+            "Falam": ["Cikha", "Falam", "Rikhuadal", "Tiddim", "Ton Zang"],
+            "Hakha": ["Hakha", "Htantlang"],
+            "Mindat": [
+                "Kanpetlet",
+                "Matupi",
+                "Mindat",
+                "Paletwa",
+                "Reazu",
+                "Sami"
+            ]
+        },
+        "Rakhine State": {
+            "Kyaukpyu": ["Ann", "Kyaukpyu", "Manaung", "Ramree"],
+            "Maungdaw": ["Buthidaung", "Maungdaw", "Taungpyoletwe"],
+            "Sittwe": ["Pauktaw", "Ponnagyun", "Rathedaung", "Sittwe"],
+            "Thandwe": ["Gaw", "Kyeintali", "Maei", "Thandwe", "Toungup"],
+            "Mrauk-U": ["Kyauktaw", "Minbya", "Mrauk-U", "Myebon"]
+        }
+    }
+}
+```
+
+**Data Structure:**
+
+-   **Top Level (Keys)**: Regions/States (e.g., "Magway Region", "Mandalay Region", "Yangon Region")
+-   **Second Level (Keys)**: Districts (e.g., "Gangaw", "Magway", "Mandalay")
+-   **Third Level (Values)**: Array of Townships (e.g., ["Gangaw", "Kyaukhtu", "Saw", "Tilin"])
+
+**Usage:** This endpoint provides address data for dropdowns when creating patients (permanent address) or admissions (present address). The structure is: **Region → District → Township**.
+
+**Frontend Implementation Example:**
+
+```javascript
+// Fetch addresses
+const response = await fetch("/api/addresses/myanmar", {
+    headers: {
+        Authorization: `Bearer ${token}`,
+    },
+});
+const { data } = await response.json();
+
+// Populate Region dropdown
+const regions = Object.keys(data); // ["Magway Region", "Mandalay Region", ...]
+
+// When region is selected, populate District dropdown
+const districts = Object.keys(data[selectedRegion]); // ["Gangaw", "Magway", ...]
+
+// When district is selected, populate Township dropdown
+const townships = data[selectedRegion][selectedDistrict]; // ["Gangaw", "Kyaukhtu", ...]
+```
 
 ---
 

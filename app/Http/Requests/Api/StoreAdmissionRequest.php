@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Rules\MyanmarAddress;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAdmissionRequest extends FormRequest
@@ -33,7 +34,8 @@ class StoreAdmissionRequest extends FormRequest
             
             // Optional admission details
             'admission_time' => 'nullable|date_format:H:i',
-            'present_address' => 'nullable|string|max:500',
+            // Address - accepts JSON string with {region, district, township} or plain text
+            'present_address' => ['nullable', new MyanmarAddress()],
             'referred_by' => 'nullable|string|max:255',
             'police_case' => 'nullable|string|in:yes,no',
             'service' => 'nullable|string|max:255',
