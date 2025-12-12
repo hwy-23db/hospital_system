@@ -2167,8 +2167,8 @@ Attempting to change these via `/update` will be **automatically blocked**.
 | ---------------- | ------ | -------- | --------------- | --------------- | --------------------------------------------------- |
 | `ward`           | string | ✅ Yes   | max:100         | Any text        | Ward/department assignment (required for inpatient) |
 | `bed_number`     | string | ✅ Yes   | max:50          | Any text        | Bed number within ward (required for inpatient)     |
-| `admission_time` | time   | ✅ Yes   | date_format:H:i | HH:MM           | Time of admission (required)                       |
-| `remarks`        | string | ✅ Yes   | max:500         | Any text        | Additional remarks/notes (required)                |
+| `admission_time` | time   | ✅ Yes   | date_format:H:i | HH:MM           | Time of admission (required)                        |
+| `remarks`        | string | ✅ Yes   | max:500         | Any text        | Additional remarks/notes (required)                 |
 
 #### Error Responses
 
@@ -2267,7 +2267,9 @@ Attempting to change these via `/update` will be **automatically blocked**.
     "errors": {
         "ward": ["Ward is required for inpatient admission."],
         "bed_number": ["Bed number is required for inpatient admission."],
-        "admission_time": ["Admission time is required for inpatient admission."],
+        "admission_time": [
+            "Admission time is required for inpatient admission."
+        ],
         "remarks": ["Remarks are required for inpatient admission."]
     }
 }
