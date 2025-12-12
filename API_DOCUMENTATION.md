@@ -641,25 +641,25 @@ GET /api/patients/search?q=123456
 | **Basic Information**    |
 | `name`                   | string        | ✅ **Yes** | max:255     | Any text                                                                      | Patient's full name                                                |
 | `nrc_number`             | string        | ✅ **Yes** | NRC format  | e.g., `1/AhGaYa(N)123456`                                                     | NRC number (required, validated against NRC format and uniqueness) |
-| `sex`                    | string        | No         | -           | `male`, `female`, `other`                                                     | Patient's gender                                                   |
-| `age`                    | integer       | No         | 0-150       | Positive integer                                                              | Patient's age in years                                             |
-| `dob`                    | date          | No         | <= today    | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                                |
-| `contact_phone`          | string        | No         | max:20      | e.g., "09123456789"                                                           | Primary contact phone number                                       |
+| `sex`                    | string        | ✅ **Yes** | -           | `male`, `female`, `other`                                                     | Patient's gender                                                   |
+| `age`                    | integer       | ✅ **Yes** | 0-150       | Positive integer                                                              | Patient's age in years                                             |
+| `dob`                    | date          | ✅ **Yes** | <= today    | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                                |
+| `contact_phone`          | string        | ✅ **Yes** | max:20      | e.g., "09123456789"                                                           | Primary contact phone number                                       |
 | **Address**              |
-| `permanent_address`      | string (JSON) | No         | Validated   | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list)  |
+| `permanent_address`      | string (JSON) | ✅ **Yes** | Validated   | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list)  |
 | **Personal Details**     |
-| `marital_status`         | string        | No         | -           | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                     |
+| `marital_status`         | string        | ✅ **Yes** | -           | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                     |
 | `ethnic_group`           | string        | No         | max:100     | e.g., "Bamar", "Shan"                                                         | Ethnic background                                                  |
 | `religion`               | string        | No         | max:100     | e.g., "Buddhist", "Christian"                                                 | Religious affiliation                                              |
-| `occupation`             | string        | No         | max:100     | Any text                                                                      | Current occupation                                                 |
-| `father_name`            | string        | No         | max:255     | Any text                                                                      | Father's name                                                      |
-| `mother_name`            | string        | No         | max:255     | Any text                                                                      | Mother's name                                                      |
+| `occupation`             | string        | ✅ **Yes** | max:100     | Any text                                                                      | Current occupation                                                 |
+| `father_name`            | string        | ✅ **Yes** | max:255     | Any text                                                                      | Father's name                                                      |
+| `mother_name`            | string        | ✅ **Yes** | max:255     | Any text                                                                      | Mother's name                                                      |
 | **Emergency Contact**    |
-| `nearest_relative_name`  | string        | No         | max:255     | Any text                                                                      | Emergency contact person name                                      |
-| `nearest_relative_phone` | string        | No         | max:20      | e.g., "09987654321"                                                           | Emergency contact phone number                                     |
-| `relationship`           | string        | No         | max:50      | e.g., "spouse", "parent"                                                      | Relationship to patient                                            |
+| `nearest_relative_name`  | string        | ✅ **Yes** | max:255     | Any text                                                                      | Emergency contact person name                                      |
+| `nearest_relative_phone` | string        | ✅ **Yes** | max:20      | e.g., "09987654321"                                                           | Emergency contact phone number                                     |
+| `relationship`           | string        | ✅ **Yes** | max:50      | e.g., "spouse", "parent"                                                      | Relationship to patient                                            |
 | **Medical Information**  |
-| `blood_type`             | string        | No         | -           | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                    |
+| `blood_type`             | string        | ✅ **Yes** | -           | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                    |
 | `known_allergies`        | string (text) | No         | max:500     | Comma-separated list                                                          | Known drug/food allergies                                          |
 | `chronic_conditions`     | string (text) | No         | max:500     | Comma-separated list                                                          | Chronic medical conditions                                         |
 
@@ -803,6 +803,14 @@ Returns patient demographics with full admission history including treatment rec
 **Authorization:** `root_user` or `admission`
 
 Only demographic data can be updated. Medical data is in admissions/treatments.
+
+**⚠️ Important:** When updating patient fields, you cannot set the following fields to `null` if you include them in the request:
+
+-   `sex`, `age`, `dob`, `contact_phone`, `permanent_address`
+-   `marital_status`, `occupation`, `father_name`, `mother_name`
+-   `nearest_relative_name`, `nearest_relative_phone`, `relationship`, `blood_type`
+
+If you need to omit a field from the update, simply don't include it in the request payload.
 
 ### 15. Get Patient Admission History
 

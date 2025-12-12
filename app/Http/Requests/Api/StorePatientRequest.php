@@ -30,29 +30,29 @@ class StorePatientRequest extends FormRequest
 
             // Basic identification
             'nrc_number' => ['required', new MyanmarNrc(), 'unique:patients,nrc_number'],
-            'sex' => 'nullable|string|in:male,female,other',
-            'age' => 'nullable|integer|min:0|max:150',
-            'dob' => 'nullable|date|before_or_equal:today',
-            'contact_phone' => 'nullable|string|max:20',
+            'sex' => 'required|string|in:male,female,other',
+            'age' => 'required|integer|min:0|max:150',
+            'dob' => 'required|date|before_or_equal:today',
+            'contact_phone' => 'required|string|max:20',
 
             // Address - accepts JSON string with {region, district, township} or plain text
-            'permanent_address' => ['nullable', new MyanmarAddress()],
+            'permanent_address' => ['required', new MyanmarAddress()],
 
             // Personal details
-            'marital_status' => 'nullable|string|in:single,married,divorced,widowed,other',
+            'marital_status' => 'required|string|in:single,married,divorced,widowed,other',
             'ethnic_group' => 'nullable|string|max:100',
             'religion' => 'nullable|string|max:100',
-            'occupation' => 'nullable|string|max:100',
-            'father_name' => 'nullable|string|max:255',
-            'mother_name' => 'nullable|string|max:255',
+            'occupation' => 'required|string|max:100',
+            'father_name' => 'required|string|max:255',
+            'mother_name' => 'required|string|max:255',
 
             // Emergency contact
-            'nearest_relative_name' => 'nullable|string|max:255',
-            'nearest_relative_phone' => 'nullable|string|max:20',
-            'relationship' => 'nullable|string|max:50',
+            'nearest_relative_name' => 'required|string|max:255',
+            'nearest_relative_phone' => 'required|string|max:20',
+            'relationship' => 'required|string|max:50',
 
             // Medical info (permanent)
-            'blood_type' => ['nullable', Rule::in(Patient::bloodTypes())],
+            'blood_type' => ['required', Rule::in(Patient::bloodTypes())],
             'known_allergies' => 'nullable|string|max:500',
             'chronic_conditions' => 'nullable|string|max:500',
         ];
@@ -66,9 +66,25 @@ class StorePatientRequest extends FormRequest
         return [
             'name.required' => 'Patient name is required.',
             'nrc_number.unique' => 'This NRC number is already registered.',
-            'dob.before_or_equal' => 'Date of birth cannot be in the future.',
+            'sex.required' => 'Patient sex is required.',
             'sex.in' => 'Sex must be male, female, or other.',
+            'age.required' => 'Patient age is required.',
+            'age.integer' => 'Age must be a number.',
+            'age.min' => 'Age cannot be negative.',
+            'age.max' => 'Age cannot exceed 150 years.',
+            'dob.required' => 'Date of birth is required.',
+            'dob.before_or_equal' => 'Date of birth cannot be in the future.',
+            'contact_phone.required' => 'Contact phone number is required.',
+            'permanent_address.required' => 'Permanent address is required.',
+            'marital_status.required' => 'Marital status is required.',
             'marital_status.in' => 'Invalid marital status.',
+            'occupation.required' => 'Occupation is required.',
+            'father_name.required' => 'Father name is required.',
+            'mother_name.required' => 'Mother name is required.',
+            'nearest_relative_name.required' => 'Nearest relative name is required.',
+            'nearest_relative_phone.required' => 'Nearest relative phone number is required.',
+            'relationship.required' => 'Relationship to nearest relative is required.',
+            'blood_type.required' => 'Blood type is required.',
             'blood_type.in' => 'Invalid blood type.',
         ];
     }
