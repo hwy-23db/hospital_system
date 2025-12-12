@@ -21,13 +21,11 @@ class ConvertToInpatientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Required for inpatient admission
+            // All fields required for inpatient admission
             'ward' => 'required|string|max:100',
-            'bed_number' => 'nullable|string|max:50',
-            
-            // Optional but useful
-            'admission_time' => 'nullable|date_format:H:i',
-            'remarks' => 'nullable|string|max:500',
+            'bed_number' => 'required|string|max:50',
+            'admission_time' => 'required|date_format:H:i',
+            'remarks' => 'required|string|max:500',
         ];
     }
 
@@ -38,6 +36,10 @@ class ConvertToInpatientRequest extends FormRequest
     {
         return [
             'ward.required' => 'Ward is required for inpatient admission.',
+            'bed_number.required' => 'Bed number is required for inpatient admission.',
+            'admission_time.required' => 'Admission time is required for inpatient admission.',
+            'admission_time.date_format' => 'Admission time must be in HH:MM format.',
+            'remarks.required' => 'Remarks are required for inpatient admission.',
         ];
     }
 }
