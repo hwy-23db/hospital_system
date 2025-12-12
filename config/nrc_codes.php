@@ -1,6 +1,6 @@
 <?php
 
-$path = base_path('storage/app/nrc_codes.json');
+$path = base_path('config/nrc_codes_data.json');
 $entries = [];
 
 if (is_file($path)) {
