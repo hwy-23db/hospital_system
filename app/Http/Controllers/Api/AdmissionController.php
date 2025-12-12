@@ -396,11 +396,11 @@ class AdmissionController extends Controller
         $request->validate([
             'discharge_type' => 'required|in:normal,against_advice,absconded,transferred',
             'discharge_status' => 'required|in:improved,unchanged,worse',
-            'discharge_diagnosis' => 'nullable|string|max:500',
-            'clinician_summary' => 'nullable|string|max:1000',
-            'discharge_instructions' => 'nullable|string|max:1000',
-            'follow_up_instructions' => 'nullable|string|max:500',
-            'follow_up_date' => 'nullable|date|after_or_equal:today',
+            'discharge_diagnosis' => 'required|string|max:500',
+            'clinician_summary' => 'required|string|max:1000',
+            'discharge_instructions' => 'required|string|max:1000',
+            'follow_up_instructions' => 'required|string|max:500',
+            'follow_up_date' => 'required|date|after_or_equal:today',
         ]);
 
         $admission->update([
@@ -520,9 +520,9 @@ class AdmissionController extends Controller
 
         $request->validate([
             'cause_of_death' => 'required|string|max:255',
-            'autopsy' => 'nullable|in:yes,no,pending',
-            'time_of_death' => 'nullable|date',
-            'certified_by' => 'nullable|string|max:255',
+            'autopsy' => 'required|in:yes,no,pending',
+            'time_of_death' => 'required|date',
+            'certified_by' => 'required|string|max:255',
         ]);
 
         $admission->update([

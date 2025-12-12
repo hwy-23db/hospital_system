@@ -30,14 +30,14 @@ class UpdateAdmissionRequest extends FormRequest
     {
         return [
             // Staff assignment
-            'doctor_id' => 'sometimes|nullable|exists:users,id',
-            'nurse_id' => 'sometimes|nullable|exists:users,id',
+            'doctor_id' => 'sometimes|required|exists:users,id',
+            'nurse_id' => 'sometimes|required|exists:users,id',
 
             // Admission details (ONLY for active admissions)
             'admission_date' => 'sometimes|date',
-            'admission_time' => 'sometimes|nullable|date_format:H:i',
+            'admission_time' => 'sometimes|required|date_format:H:i',
             // Address - accepts JSON string with {region, district, township} or plain text
-            'present_address' => ['sometimes', 'nullable', new MyanmarAddress()],
+            'present_address' => ['sometimes', 'required', new MyanmarAddress()],
             'admitted_for' => 'sometimes|string|max:500',
             'referred_by' => 'sometimes|nullable|string|max:255',
             'police_case' => 'sometimes|nullable|string|in:yes,no',
@@ -88,8 +88,13 @@ class UpdateAdmissionRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'doctor_id.required' => 'Doctor assignment cannot be null when updating.',
             'doctor_id.exists' => 'The selected doctor does not exist.',
+            'nurse_id.required' => 'Nurse assignment cannot be null when updating.',
             'nurse_id.exists' => 'The selected nurse does not exist.',
+            'admission_time.required' => 'Admission time cannot be null when updating.',
+            'admission_time.date_format' => 'Admission time must be in HH:mm format.',
+            'present_address.required' => 'Present address cannot be null when updating.',
             'follow_up_date.after_or_equal' => 'Follow-up date must be today or in the future.',
         ];
     }

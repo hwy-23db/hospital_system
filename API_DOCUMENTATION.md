@@ -1191,30 +1191,32 @@ The system checks if a patient is deceased **before** creating any new admission
 
 #### Request Parameters
 
-| Field                         | Type          | Required                                                 | Constraints                                  | Accepted Values                                                               | Description                                                                         |
-| ----------------------------- | ------------- | -------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Field                         | Type          | Required                                                 | Constraints                                             | Accepted Values                                                               | Description                                                                         |
+| ----------------------------- | ------------- | -------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | **Admission Type**            |
-| `admission_type`              | string        | No                                                       | Default: `inpatient`                         | `outpatient`, `inpatient`                                                     | Type of admission                                                                   |
+| `admission_type`              | string        | ✅ **Yes**                                               | -                                                       | `outpatient`, `inpatient`                                                     | Type of admission                                                                   |
 | **Staff Assignment**          |
-| `doctor_id`                   | integer       | No                                                       | Must exist in users table with role=`doctor` | User ID                                                                       | ID of doctor to assign (from users table)                                           |
-| `nurse_id`                    | integer       | No                                                       | Must exist in users table with role=`nurse`  | User ID                                                                       | ID of nurse to assign (from users table)                                            |
+| `doctor_id`                   | integer       | ✅ **Yes**                                               | Must exist in users table with role=`doctor`            | User ID                                                                       | ID of doctor to assign (from users table)                                           |
+| `nurse_id`                    | integer       | ✅ **Yes**                                               | Must exist in users table with role=`nurse`             | User ID                                                                       | ID of nurse to assign (from users table)                                            |
 | **Required Fields**           |
-| `admission_date`              | date          | ✅ **Yes**                                               | <= today                                     | YYYY-MM-DD                                                                    | Date of admission (cannot be future)                                                |
-| `admitted_for`                | string        | ✅ **Yes**                                               | max:500                                      | Any text                                                                      | Chief complaint / reason for admission                                              |
-| **Location (Inpatient Only)** |
-| `ward`                        | string        | **Required for inpatient**<br>**BLOCKED for outpatient** | max:100, prohibited_if:outpatient            | e.g., "Ward A", "ICU"                                                         | Ward/department (required for inpatient, cannot be specified for outpatient)        |
-| `bed_number`                  | string        | **Optional for inpatient**<br>**BLOCKED for outpatient** | max:50, prohibited_if:outpatient             | e.g., "12", "A-15"                                                            | Bed number within ward (optional for inpatient, cannot be specified for outpatient) |
+| `admission_date`              | date          | ✅ **Yes**                                               | <= today                                                | YYYY-MM-DD                                                                    | Date of admission (cannot be future)                                                |
+| `admitted_for`                | string        | ✅ **Yes**                                               | max:500                                                 | Any text                                                                      | Chief complaint / reason for admission                                              |
 | **Additional Details**        |
-| `admission_time`              | time          | No                                                       | HH:mm format                                 | e.g., "10:30"                                                                 | Time of admission                                                                   |
-| `present_address`             | string (JSON) | No                                                       | Validated                                    | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Current address at time of admission (must match Myanmar addresses list)            |
-| `referred_by`                 | string        | No                                                       | max:255                                      | Any text                                                                      | Referring doctor/hospital                                                           |
-| `police_case`                 | string        | No                                                       | -                                            | `yes`, `no`                                                                   | Whether this is a police/legal case                                                 |
-| `service`                     | string        | No                                                       | max:255                                      | e.g., "Cardiology", "Surgery"                                                 | Medical department/service                                                          |
-| `medical_officer`             | string        | No                                                       | max:255                                      | Any text                                                                      | Name of medical officer                                                             |
-| **Initial Assessment**        |
-| `initial_diagnosis`           | string (text) | No                                                       | max:500                                      | Any text                                                                      | Initial diagnosis/assessment                                                        |
-| `drug_allergy_noted`          | string        | No                                                       | max:255                                      | Comma-separated                                                               | Allergies noted at admission                                                        |
-| `remarks`                     | string (text) | No                                                       | max:500                                      | Any text                                                                      | Additional remarks/notes                                                            |
+| `admission_time`              | time          | ✅ **Yes**                                               | HH:mm format                                            | e.g., "10:30"                                                                 | Time of admission                                                                   |
+| `present_address`             | string (JSON) | ✅ **Yes**                                               | Validated                                               | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Current address at time of admission (must match Myanmar addresses list)            |
+| `police_case`                 | string        | ✅ **Yes**                                               | -                                                       | `yes`, `no`                                                                   | Whether this is a police/legal case                                                 |
+| `service`                     | string        | ✅ **Yes**                                               | max:255                                                 | e.g., "Cardiology", "Surgery"                                                 | Medical department/service                                                          |
+| `initial_diagnosis`           | string (text) | ✅ **Yes**                                               | max:500                                                 | Any text                                                                      | Initial diagnosis/assessment                                                        |
+| **Location (Inpatient Only)** |
+| `ward`                        | string        | **Required for inpatient**<br>**BLOCKED for outpatient** | max:100, prohibited_if:outpatient                       | e.g., "Ward A", "ICU"                                                         | Ward/department (required for inpatient, cannot be specified for outpatient)        |
+| `bed_number`                  | string        | **Required for inpatient**<br>**BLOCKED for outpatient** | max:50, required_if:inpatient, prohibited_if:outpatient | e.g., "12", "A-15"                                                            | Bed number within ward (required for inpatient, cannot be specified for outpatient) |
+| **Optional Details**          |
+| `referred_by`                 | string        | No                                                       | max:255                                                 | Any text                                                                      | Referring doctor/hospital                                                           |
+| `medical_officer`             | string        | No                                                       | max:255                                                 | Any text                                                                      | Name of medical officer                                                             |
+| `drug_allergy_noted`          | string        | No                                                       | max:255                                                 | Comma-separated                                                               | Allergies noted at admission                                                        |
+| `remarks`                     | string (text) | No                                                       | max:500                                                 | Any text                                                                      | Additional remarks/notes                                                            |
+| `drug_allergy_noted`          | string        | No                                                       | max:255                                                 | Comma-separated                                                               | Allergies noted at admission                                                        |
+| `remarks`                     | string (text) | No                                                       | max:500                                                 | Any text                                                                      | Additional remarks/notes                                                            |
 
 **Address Validation Note:**
 
@@ -1681,6 +1683,12 @@ Returns full admission details with patient information, assigned staff, and all
 **Purpose:** Update admission details during the patient's stay, including staff assignment (`doctor_id`, `nurse_id`). For status changes, use dedicated endpoints.
 
 **Note:** Staff assignment is done via this endpoint, not a separate endpoint. Staff is assigned when creating an admission, and can be reassigned later using this update endpoint.
+
+**⚠️ Important:** When updating admission fields, you cannot set the following fields to `null` if you include them in the request:
+
+-   `doctor_id`, `nurse_id`, `admission_time`, `present_address`
+
+If you need to omit a field from the update, simply don't include it in the request payload.
 
 #### ⚠️ IMPORTANT: Restricted Fields
 
@@ -2340,11 +2348,11 @@ Attempting to change these via `/update` will be **automatically blocked**.
 | ------------------------ | ------ | -------- | ------------------------------------------------------ | ------------------------------ |
 | `discharge_type`         | string | ✅ Yes   | `normal`, `against_advice`, `absconded`, `transferred` | How patient left               |
 | `discharge_status`       | string | ✅ Yes   | `improved`, `unchanged`, `worse`                       | Patient condition at discharge |
-| `discharge_diagnosis`    | string | No       | Any text (max:500)                                     | Final diagnosis                |
-| `clinician_summary`      | string | No       | Any text (max:1000)                                    | Clinical summary               |
-| `discharge_instructions` | string | No       | Any text (max:1000)                                    | Instructions for patient       |
-| `follow_up_instructions` | string | No       | Any text (max:500)                                     | Follow-up care details         |
-| `follow_up_date`         | date   | No       | >= today                                               | Next appointment date          |
+| `discharge_diagnosis`    | string | ✅ Yes   | Any text (max:500)                                     | Final diagnosis                |
+| `clinician_summary`      | string | ✅ Yes   | Any text (max:1000)                                    | Clinical summary               |
+| `discharge_instructions` | string | ✅ Yes   | Any text (max:1000)                                    | Instructions for patient       |
+| `follow_up_instructions` | string | ✅ Yes   | Any text (max:500)                                     | Follow-up care details         |
+| `follow_up_date`         | date   | ✅ Yes   | >= today                                               | Next appointment date          |
 
 #### Success Response (200 OK)
 
@@ -2485,9 +2493,9 @@ Attempting to change these via `/update` will be **automatically blocked**.
 | Field            | Type     | Required | Accepted Values        | Description                     |
 | ---------------- | -------- | -------- | ---------------------- | ------------------------------- |
 | `cause_of_death` | string   | ✅ Yes   | Any text (max:255)     | Medical cause of death          |
-| `autopsy`        | string   | No       | `yes`, `no`, `pending` | Autopsy status                  |
-| `time_of_death`  | datetime | No       | YYYY-MM-DD HH:mm:ss    | Time of death (defaults to now) |
-| `certified_by`   | string   | No       | Any text (max:255)     | Certifying doctor name          |
+| `autopsy`        | string   | ✅ Yes   | `yes`, `no`, `pending` | Autopsy status                  |
+| `time_of_death`  | datetime | ✅ Yes   | YYYY-MM-DD HH:mm:ss    | Time of death (defaults to now) |
+| `certified_by`   | string   | ✅ Yes   | Any text (max:255)     | Certifying doctor name          |
 
 #### Success Response (200 OK)
 
