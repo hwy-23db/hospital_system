@@ -58,7 +58,7 @@ class StoreAdmissionRequest extends FormRequest
                 'string',
                 'max:50'
             ],
-            'medical_officer' => 'nullable|string|max:255',
+            'medical_officer' => ['nullable', 'string', 'max:255', 'regex:/^[\p{L}\s\-\'\.]+$/u'],
 
             // Initial assessment
             'initial_diagnosis' => 'nullable|string|max:500',
@@ -93,6 +93,7 @@ class StoreAdmissionRequest extends FormRequest
             'ward.prohibited_if' => 'Ward cannot be specified for outpatient admissions.',
             'bed_number.required_if' => 'Bed number is required for inpatient admissions.',
             'bed_number.prohibited_if' => 'Bed number cannot be specified for outpatient admissions.',
+            'medical_officer.regex' => 'Medical officer name can only contain letters, spaces, hyphens, apostrophes, and periods.',
         ];
     }
 }

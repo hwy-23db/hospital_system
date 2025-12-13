@@ -44,7 +44,7 @@ class UpdateAdmissionRequest extends FormRequest
             'service' => 'sometimes|nullable|string|max:255',
             'ward' => 'sometimes|nullable|string|max:100',
             'bed_number' => 'sometimes|nullable|string|max:50',
-            'medical_officer' => 'sometimes|nullable|string|max:255',
+            'medical_officer' => ['sometimes', 'nullable', 'string', 'max:255', 'regex:/^[\p{L}\s\-\'\.]+$/u'],
 
             // Medical Assessment (doctors can update for assigned admissions)
             'initial_diagnosis' => 'sometimes|nullable|string|max:500',
@@ -96,6 +96,7 @@ class UpdateAdmissionRequest extends FormRequest
             'admission_time.date_format' => 'Admission time must be in HH:mm format.',
             'present_address.required' => 'Present address cannot be null when updating.',
             'follow_up_date.after_or_equal' => 'Follow-up date must be today or in the future.',
+            'medical_officer.regex' => 'Medical officer name can only contain letters, spaces, hyphens, apostrophes, and periods.',
         ];
     }
 

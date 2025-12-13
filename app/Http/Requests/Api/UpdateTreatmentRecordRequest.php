@@ -26,7 +26,7 @@ class UpdateTreatmentRecordRequest extends FormRequest
                 'sometimes',
                 Rule::in(TreatmentRecord::treatmentTypes()),
             ],
-            'treatment_name' => 'sometimes|required|string|max:255',
+            'treatment_name' => ['sometimes', 'required', 'string', 'max:255', 'regex:/^[\p{L}\s\-\'\.]+$/u'],
             'description' => 'sometimes|nullable|string|max:1000',
             'notes' => 'sometimes|nullable|string|max:1000',
             'medications' => 'sometimes|required|string|max:500',
@@ -58,6 +58,7 @@ class UpdateTreatmentRecordRequest extends FormRequest
         return [
             'treatment_type.in' => 'Invalid treatment type.',
             'treatment_name.required' => 'Treatment name cannot be null when updating.',
+            'treatment_name.regex' => 'Treatment name can only contain letters, spaces, hyphens, apostrophes, and periods.',
             'medications.required' => 'Medications cannot be null when updating.',
             'dosage.required' => 'Dosage information cannot be null when updating.',
             'treatment_date.required' => 'Treatment date cannot be null when updating.',
