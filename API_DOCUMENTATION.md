@@ -636,32 +636,32 @@ GET /api/patients/search?q=123456
 
 #### Request Parameters
 
-| Field                    | Type          | Required   | Constraints | Accepted Values                                                               | Description                                                        |
-| ------------------------ | ------------- | ---------- | ----------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Field                    | Type          | Required   | Constraints                                              | Accepted Values                                                               | Description                                                             |
+| ------------------------ | ------------- | ---------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | **Basic Information**    |
-| `name`                   | string        | ✅ **Yes** | max:255     | Any text                                                                      | Patient's full name                                                |
-| `nrc_number`             | string        | ✅ **Yes** | NRC format  | e.g., `1/AhGaYa(N)123456`                                                     | NRC number (required, validated against NRC format and uniqueness) |
-| `sex`                    | string        | ✅ **Yes** | -           | `male`, `female`, `other`                                                     | Patient's gender                                                   |
-| `age`                    | integer       | ✅ **Yes** | 0-150       | Positive integer                                                              | Patient's age in years                                             |
-| `dob`                    | date          | ✅ **Yes** | <= today    | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                                |
-| `contact_phone`          | string        | ✅ **Yes** | max:20      | e.g., "09123456789"                                                           | Primary contact phone number                                       |
+| `name`                   | string        | ✅ **Yes** | max:255, letters/spaces/hyphens/apostrophes/periods only | Letters, spaces, hyphens, apostrophes, periods                                | Patient's full name (only letters and common name characters)           |
+| `nrc_number`             | string        | ✅ **Yes** | NRC format                                               | e.g., `1/AhGaYa(N)123456`                                                     | NRC number (required, validated against NRC format and uniqueness)      |
+| `sex`                    | string        | ✅ **Yes** | -                                                        | `male`, `female`, `other`                                                     | Patient's gender                                                        |
+| `age`                    | integer       | ✅ **Yes** | 0-150                                                    | Positive integer (numbers only)                                               | Patient's age in years                                                  |
+| `dob`                    | date          | ✅ **Yes** | <= today                                                 | YYYY-MM-DD                                                                    | Date of birth (cannot be in future)                                     |
+| `contact_phone`          | string        | ✅ **Yes** | max:20, digits/spaces/plus/hyphens/parentheses only      | e.g., "09123456789", "+95 9 123 456 789"                                      | Primary contact phone number (only phone number characters)             |
 | **Address**              |
-| `permanent_address`      | string (JSON) | ✅ **Yes** | Validated   | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list)  |
+| `permanent_address`      | string (JSON) | ✅ **Yes** | Validated                                                | JSON: `{"region": "...", "district": "...", "township": "..."}` or plain text | Permanent residential address (must match Myanmar addresses list)       |
 | **Personal Details**     |
-| `marital_status`         | string        | ✅ **Yes** | -           | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                     |
-| `ethnic_group`           | string        | No         | max:100     | e.g., "Bamar", "Shan"                                                         | Ethnic background                                                  |
-| `religion`               | string        | No         | max:100     | e.g., "Buddhist", "Christian"                                                 | Religious affiliation                                              |
-| `occupation`             | string        | ✅ **Yes** | max:100     | Any text                                                                      | Current occupation                                                 |
-| `father_name`            | string        | ✅ **Yes** | max:255     | Any text                                                                      | Father's name                                                      |
-| `mother_name`            | string        | ✅ **Yes** | max:255     | Any text                                                                      | Mother's name                                                      |
+| `marital_status`         | string        | ✅ **Yes** | -                                                        | `single`, `married`, `divorced`, `widowed`, `other`                           | Marital status                                                          |
+| `ethnic_group`           | string        | No         | max:100                                                  | e.g., "Bamar", "Shan"                                                         | Ethnic background                                                       |
+| `religion`               | string        | No         | max:100                                                  | e.g., "Buddhist", "Christian"                                                 | Religious affiliation                                                   |
+| `occupation`             | string        | ✅ **Yes** | max:100, letters/spaces/hyphens/apostrophes/periods only | Letters, spaces, hyphens, apostrophes, periods                                | Current occupation (only letters and common text characters)            |
+| `father_name`            | string        | ✅ **Yes** | max:255, letters/spaces/hyphens/apostrophes/periods only | Letters, spaces, hyphens, apostrophes, periods                                | Father's name (only letters and common name characters)                 |
+| `mother_name`            | string        | ✅ **Yes** | max:255, letters/spaces/hyphens/apostrophes/periods only | Letters, spaces, hyphens, apostrophes, periods                                | Mother's name (only letters and common name characters)                 |
 | **Emergency Contact**    |
-| `nearest_relative_name`  | string        | ✅ **Yes** | max:255     | Any text                                                                      | Emergency contact person name                                      |
-| `nearest_relative_phone` | string        | ✅ **Yes** | max:20      | e.g., "09987654321"                                                           | Emergency contact phone number                                     |
-| `relationship`           | string        | ✅ **Yes** | max:50      | e.g., "spouse", "parent"                                                      | Relationship to patient                                            |
+| `nearest_relative_name`  | string        | ✅ **Yes** | max:255, letters/spaces/hyphens/apostrophes/periods only | Letters, spaces, hyphens, apostrophes, periods                                | Emergency contact person name (only letters and common name characters) |
+| `nearest_relative_phone` | string        | ✅ **Yes** | max:20, digits/spaces/plus/hyphens/parentheses only      | e.g., "09987654321", "+95 9 876 543 210"                                      | Emergency contact phone number (only phone number characters)           |
+| `relationship`           | string        | ✅ **Yes** | max:50, letters/spaces/hyphens/apostrophes only          | e.g., "spouse", "parent", "brother"                                           | Relationship to patient (only letters and common text characters)       |
 | **Medical Information**  |
-| `blood_type`             | string        | ✅ **Yes** | -           | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                    |
-| `known_allergies`        | string (text) | No         | max:500     | Comma-separated list                                                          | Known drug/food allergies                                          |
-| `chronic_conditions`     | string (text) | No         | max:500     | Comma-separated list                                                          | Chronic medical conditions                                         |
+| `blood_type`             | string        | ✅ **Yes** | -                                                        | `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`                              | Blood type (must be valid type)                                         |
+| `known_allergies`        | string (text) | No         | max:500                                                  | Comma-separated list                                                          | Known drug/food allergies                                               |
+| `chronic_conditions`     | string (text) | No         | max:500                                                  | Comma-separated list                                                          | Chronic medical conditions                                              |
 
 **Address & NRC Validation Notes:**
 
@@ -686,6 +686,26 @@ The `permanent_address` field accepts addresses in two formats:
 2. **Plain Text (Backward Compatible):** Accepts any text string
     - For existing data compatibility
     - Structured JSON is preferred for new entries
+
+**Character Restrictions:**
+
+The following fields have strict character validation to ensure data quality:
+
+-   **Name Fields** (`name`, `father_name`, `mother_name`, `nearest_relative_name`, `occupation`, `relationship`):
+
+    -   ✅ Allowed: Letters (Unicode), spaces, hyphens (`-`), apostrophes (`'`), periods (`.`)
+    -   ❌ Not allowed: Numbers, special characters (except those listed)
+    -   Examples: `"John O'Brien"`, `"Mary-Jane Smith"`, `"Dr. Smith"` ✅ | `"John123"`, `"John@Smith"` ❌
+
+-   **Phone Fields** (`contact_phone`, `nearest_relative_phone`):
+
+    -   ✅ Allowed: Digits (`0-9`), spaces, plus signs (`+`), hyphens (`-`), parentheses (`()`)
+    -   ❌ Not allowed: Letters, other special characters
+    -   Examples: `"09123456789"`, `"+95 9 123 456 789"`, `"(09) 123-456-789"` ✅ | `"09abc123"`, `"09@123"` ❌
+
+-   **Age**:
+    -   ✅ Must be a positive integer (0-150)
+    -   ❌ Not allowed: Decimals, negative numbers, text
 
 **Response Format Note:**
 
@@ -811,6 +831,12 @@ Only demographic data can be updated. Medical data is in admissions/treatments.
 -   `nearest_relative_name`, `nearest_relative_phone`, `relationship`, `blood_type`
 
 If you need to omit a field from the update, simply don't include it in the request payload.
+
+**Character Restrictions:** The same character restrictions apply as in patient creation:
+
+-   **Name fields** (`name`, `father_name`, `mother_name`, `nearest_relative_name`, `occupation`, `relationship`): Only letters, spaces, hyphens, apostrophes, and periods allowed
+-   **Phone fields** (`contact_phone`, `nearest_relative_phone`): Only digits, spaces, plus signs, hyphens, and parentheses allowed
+-   **Age**: Must be a positive integer (0-150)
 
 ### 15. Get Patient Admission History
 
