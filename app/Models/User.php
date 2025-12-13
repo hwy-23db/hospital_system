@@ -114,6 +114,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get admissions where this user is assigned as doctor.
+     */
+    public function admissionsAsDoctor()
+    {
+        return $this->hasMany(Admission::class, 'doctor_id');
+    }
+
+    /**
+     * Get admissions where this user is assigned as nurse.
+     */
+    public function admissionsAsNurse()
+    {
+        return $this->hasMany(Admission::class, 'nurse_id');
+    }
+
+    /**
      * Send the password reset notification.
      *
      * @param  string  $token

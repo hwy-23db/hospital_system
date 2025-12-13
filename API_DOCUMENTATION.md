@@ -36,9 +36,10 @@ Access tokens expire after **24 hours**. After expiration, you'll need to log in
 3. [Patient Management (Demographics)](#patient-management-endpoints)
 4. [Admission Management (Hospital Stays)](#admission-management-endpoints)
 5. [Treatment Records (Medical History)](#treatment-records-endpoints)
-6. [Helper Endpoints](#helper-endpoints)
-7. [User Roles & Permissions](#user-roles--permissions)
-8. [Data Model Overview](#data-model-overview)
+6. [Reports & Analytics](#reports--analytics)
+7. [Helper Endpoints](#helper-endpoints)
+8. [User Roles & Permissions](#user-roles--permissions)
+9. [Data Model Overview](#data-model-overview)
 
 ---
 
@@ -2732,6 +2733,272 @@ Result:
         }
     }
 }
+```
+
+---
+
+## Reports & Analytics
+
+Comprehensive reporting endpoints for dashboard graphs and data visualization.
+
+### 25. Get Reports (Dashboard Graphs)
+
+**Endpoint:** `GET /api/reports`
+
+**Authorization:** `root_user` or `admission`
+
+**Purpose:** Get comprehensive statistics and aggregated data for dashboard graphs and charts. Returns data formatted for easy visualization with frontend charting libraries (Chart.js, Recharts, etc.).
+
+#### Query Parameters
+
+| Parameter    | Type | Required | Default               | Description                                       |
+| ------------ | ---- | -------- | --------------------- | ------------------------------------------------- |
+| `start_date` | date | No       | 12 months ago (start) | Start date for time-based statistics (YYYY-MM-DD) |
+| `end_date`   | date | No       | Current month end     | End date for time-based statistics (YYYY-MM-DD)   |
+
+#### Response Structure
+
+The response contains multiple categories of statistics, each formatted for different types of graphs:
+
+```json
+{
+    "message": "Reports retrieved successfully",
+    "date_range": {
+        "start_date": "2023-12-01",
+        "end_date": "2024-12-31"
+    },
+    "data": {
+        "summary": {
+            "total_patients": 1250,
+            "total_admissions": 3450,
+            "active_admissions": 45,
+            "total_treatments": 8920,
+            "total_staff": 25
+        },
+        "patients": {
+            "by_gender": {
+                "male": 650,
+                "female": 580,
+                "other": 20
+            },
+            "by_blood_type": {
+                "A+": 320,
+                "A-": 85,
+                "B+": 280,
+                "B-": 75,
+                "AB+": 45,
+                "AB-": 12,
+                "O+": 380,
+                "O-": 53
+            },
+            "by_age_group": {
+                "0-17": 150,
+                "18-30": 280,
+                "31-50": 420,
+                "51-70": 320,
+                "71+": 80
+            },
+            "by_marital_status": {
+                "single": 450,
+                "married": 650,
+                "divorced": 80,
+                "widowed": 60,
+                "other": 10
+            },
+            "registrations_over_time": [
+                { "date": "2024-01-01", "count": 12 },
+                { "date": "2024-01-02", "count": 8 },
+                { "date": "2024-01-03", "count": 15 }
+            ]
+        },
+        "admissions": {
+            "by_type": {
+                "inpatient": 2800,
+                "outpatient": 650
+            },
+            "by_status": {
+                "admitted": 45,
+                "discharged": 3200,
+                "deceased": 150,
+                "transferred": 55
+            },
+            "by_department": {
+                "Cardiology": 450,
+                "Surgery": 380,
+                "Oncology": 320,
+                "Emergency": 280
+            },
+            "admissions_over_time": [
+                { "date": "2024-01-01", "count": 8 },
+                { "date": "2024-01-02", "count": 12 },
+                { "date": "2024-01-03", "count": 10 }
+            ],
+            "discharges_over_time": [
+                { "date": "2024-01-01", "count": 5 },
+                { "date": "2024-01-02", "count": 9 },
+                { "date": "2024-01-03", "count": 7 }
+            ],
+            "average_length_of_stay": 5.2
+        },
+        "treatments": {
+            "by_type": {
+                "medication": 3200,
+                "diagnostic": 2800,
+                "surgery": 450,
+                "chemotherapy": 380,
+                "radiotherapy": 280,
+                "physical_therapy": 320,
+                "consultation": 890
+            },
+            "by_outcome": {
+                "completed": 6500,
+                "ongoing": 1200,
+                "successful": 800,
+                "partial": 320,
+                "pending": 100
+            },
+            "treatments_over_time": [
+                { "date": "2024-01-01", "count": 45 },
+                { "date": "2024-01-02", "count": 52 },
+                { "date": "2024-01-03", "count": 48 }
+            ],
+            "treatments_by_month": [
+                { "month": "2024-01", "count": 1250 },
+                { "month": "2024-02", "count": 1180 },
+                { "month": "2024-03", "count": 1320 }
+            ]
+        },
+        "departments": {
+            "admissions_by_service": [
+                { "service": "Cardiology", "count": 450 },
+                { "service": "Surgery", "count": 380 },
+                { "service": "Oncology", "count": 320 }
+            ],
+            "top_departments": {
+                "Cardiology": 450,
+                "Surgery": 380,
+                "Oncology": 320,
+                "Emergency": 280
+            }
+        },
+        "time_series": {
+            "daily_admissions": [
+                { "date": "2024-01-01", "count": 8 },
+                { "date": "2024-01-02", "count": 12 }
+            ],
+            "monthly_admissions": [
+                { "month": "2024-01", "count": 320 },
+                { "month": "2024-02", "count": 290 }
+            ],
+            "monthly_discharges": [
+                { "month": "2024-01", "count": 280 },
+                { "month": "2024-02", "count": 310 }
+            ]
+        },
+        "staff_workload": {
+            "doctors": [
+                { "id": 2, "name": "Dr. Smith", "admissions_count": 125 },
+                { "id": 5, "name": "Dr. Johnson", "admissions_count": 98 }
+            ],
+            "nurses": [
+                { "id": 3, "name": "Nurse Jane", "admissions_count": 145 },
+                { "id": 7, "name": "Nurse Mary", "admissions_count": 120 }
+            ]
+        }
+    }
+}
+```
+
+#### Graph Types Supported
+
+**1. Pie/Donut Charts:**
+
+-   `patients.by_gender` - Patient distribution by gender
+-   `patients.by_blood_type` - Blood type distribution
+-   `patients.by_age_group` - Age group distribution
+-   `patients.by_marital_status` - Marital status distribution
+-   `admissions.by_type` - Inpatient vs Outpatient
+-   `admissions.by_status` - Admission status breakdown
+-   `treatments.by_type` - Treatment type distribution
+-   `treatments.by_outcome` - Treatment outcome distribution
+
+**2. Bar Charts:**
+
+-   `admissions.by_department` - Top departments by admissions
+-   `departments.top_departments` - Department statistics
+-   `staff_workload.doctors` - Doctor workload ranking
+-   `staff_workload.nurses` - Nurse workload ranking
+
+**3. Line Charts:**
+
+-   `patients.registrations_over_time` - Daily patient registrations
+-   `admissions.admissions_over_time` - Daily admissions trend
+-   `admissions.discharges_over_time` - Daily discharges trend
+-   `treatments.treatments_over_time` - Daily treatments trend
+-   `time_series.monthly_admissions` - Monthly admission trends
+-   `time_series.monthly_discharges` - Monthly discharge trends
+-   `treatments.treatments_by_month` - Monthly treatment trends
+
+**4. Summary Cards:**
+
+-   `summary` - Overall system statistics
+
+#### Example Usage
+
+**Get reports for last 6 months:**
+
+```bash
+GET /api/reports?start_date=2024-06-01&end_date=2024-12-31
+Authorization: Bearer {token}
+```
+
+**Get reports for current year:**
+
+```bash
+GET /api/reports?start_date=2024-01-01&end_date=2024-12-31
+Authorization: Bearer {token}
+```
+
+**Get default reports (last 12 months):**
+
+```bash
+GET /api/reports
+Authorization: Bearer {token}
+```
+
+#### Frontend Integration Example
+
+```javascript
+// Fetch reports data
+const response = await fetch(
+    "/api/reports?start_date=2024-01-01&end_date=2024-12-31",
+    {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    }
+);
+const { data } = await response.json();
+
+// Use with Chart.js
+const genderChart = new Chart(ctx, {
+    type: "pie",
+    data: {
+        labels: Object.keys(data.patients.by_gender),
+        datasets: [
+            {
+                data: Object.values(data.patients.by_gender),
+            },
+        ],
+    },
+});
+
+// Use with Recharts
+<LineChart data={data.admissions.admissions_over_time}>
+    <Line dataKey="count" />
+    <XAxis dataKey="date" />
+    <YAxis />
+</LineChart>;
 ```
 
 ---

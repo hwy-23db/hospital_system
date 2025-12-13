@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\TreatmentRecordController;
 use App\Http\Controllers\Api\NrcController;
 use App\Http\Controllers\Api\WardController;
+use App\Http\Controllers\Api\ReportsController;
 
 // Login endpoint - rate limiting is handled in LoginRequest class
 // 5 attempts per email+IP combination with 60 second lockout
@@ -107,6 +108,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admission statistics (admission/root only)
     Route::get('/admissions/statistics', [AdmissionController::class, 'statistics']);
+
+    // Reports endpoint for dashboard graphs (admission/root only)
+    Route::get('/reports', [ReportsController::class, 'index']);
 
     // List all admissions (role-based)
     Route::get('/admissions', [AdmissionController::class, 'index']);
