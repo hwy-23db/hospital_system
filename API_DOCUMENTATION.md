@@ -3033,23 +3033,23 @@ If an admission has no treatment records:
 
 #### Request Parameters
 
-| Field                  | Type   | Required | Constraints            | Accepted Values           | Description                                           |
-| ---------------------- | ------ | -------- | ---------------------- | ------------------------- | ----------------------------------------------------- |
-| `treatment_type`       | string | ✅ Yes   | -                      | See treatment types below | Type of treatment performed                           |
-| `treatment_name`       | string | No       | max:255                | Any text                  | Specific name of treatment                            |
-| `description`          | string | No       | max:1000               | Any text                  | Detailed description                                  |
-| `notes`                | string | No       | max:1000               | Any text                  | General notes                                         |
-| `medications`          | string | No       | max:500                | Any text                  | Medications administered                              |
-| `dosage`               | string | No       | max:255                | Any text                  | Dosage information                                    |
-| `treatment_date`       | date   | No       | -                      | YYYY-MM-DD                | Date of treatment (auto-set to today if not provided) |
-| `treatment_time`       | time   | No       | -                      | HH:MM                     | Time of treatment                                     |
-| `results`              | string | No       | max:1000               | Any text                  | Treatment results                                     |
-| `findings`             | string | No       | max:1000               | Any text                  | Medical findings                                      |
-| `outcome`              | string | No       | -                      | See outcomes below        | Treatment outcome                                     |
-| `pre_procedure_notes`  | string | No       | max:1000               | Any text                  | Notes before procedure                                |
-| `post_procedure_notes` | string | No       | max:1000               | Any text                  | Notes after procedure                                 |
-| `complications`        | string | No       | max:500                | Any text                  | Any complications                                     |
-| `attachments`          | file[] | No       | max:10 files, 5MB each | PDF only                  | Medical document attachments                          |
+| Field                  | Type   | Required | Constraints            | Accepted Values           | Description                  |
+| ---------------------- | ------ | -------- | ---------------------- | ------------------------- | ---------------------------- |
+| `treatment_type`       | string | ✅ Yes   | -                      | See treatment types below | Type of treatment performed  |
+| `treatment_name`       | string | ✅ Yes   | max:255                | Any text                  | Specific name of treatment   |
+| `description`          | string | No       | max:1000               | Any text                  | Detailed description         |
+| `notes`                | string | No       | max:1000               | Any text                  | General notes                |
+| `medications`          | string | ✅ Yes   | max:500                | Any text                  | Medications administered     |
+| `dosage`               | string | ✅ Yes   | max:255                | Any text                  | Dosage information           |
+| `treatment_date`       | date   | ✅ Yes   | -                      | YYYY-MM-DD                | Date of treatment            |
+| `treatment_time`       | time   | ✅ Yes   | -                      | HH:MM                     | Time of treatment            |
+| `results`              | string | No       | max:1000               | Any text                  | Treatment results            |
+| `findings`             | string | No       | max:1000               | Any text                  | Medical findings             |
+| `outcome`              | string | ✅ Yes   | -                      | See outcomes below        | Treatment outcome            |
+| `pre_procedure_notes`  | string | No       | max:1000               | Any text                  | Notes before procedure       |
+| `post_procedure_notes` | string | No       | max:1000               | Any text                  | Notes after procedure        |
+| `complications`        | string | No       | max:500                | Any text                  | Any complications            |
+| `attachments`          | file[] | No       | max:10 files, 5MB each | PDF only                  | Medical document attachments |
 
 **File Upload Notes:**
 
@@ -3390,26 +3390,32 @@ If an admission has no treatment records:
 
 **Purpose:** Update an existing treatment record with new information, results, or outcomes. Commonly used to record treatment results, update findings, or change outcome status.
 
-#### Request Parameters (All Optional)
+**⚠️ Important:** When updating treatment record fields, you cannot set the following fields to `null` if you include them in the request:
 
-| Field                  | Type    | Description                            | Accepted Values                                                                                                                                                                                                                    |
-| ---------------------- | ------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `treatment_type`       | string  | Type of treatment                      | `surgery`, `radiotherapy`, `chemotherapy`, `targeted_therapy`, `hormone_therapy`, `immunotherapy`, `intervention_therapy`, `medication`, `physical_therapy`, `supportive_care`, `diagnostic`, `consultation`, `procedure`, `other` |
-| `treatment_name`       | string  | Specific name of treatment             | Max 255 characters                                                                                                                                                                                                                 |
-| `description`          | string  | Detailed description                   | Max 1000 characters                                                                                                                                                                                                                |
-| `notes`                | string  | General notes                          | Max 1000 characters                                                                                                                                                                                                                |
-| `medications`          | string  | Medications administered               | Max 500 characters                                                                                                                                                                                                                 |
-| `dosage`               | string  | Dosage information                     | Max 255 characters                                                                                                                                                                                                                 |
-| `treatment_date`       | date    | Date of treatment                      | Format: `YYYY-MM-DD`                                                                                                                                                                                                               |
-| `treatment_time`       | time    | Time of treatment                      | Format: `HH:mm` (24-hour)                                                                                                                                                                                                          |
-| `results`              | string  | Treatment results                      | Max 1000 characters                                                                                                                                                                                                                |
-| `findings`             | string  | Medical findings                       | Max 1000 characters                                                                                                                                                                                                                |
-| `outcome`              | string  | Treatment outcome                      | `pending`, `successful`, `partial`, `unsuccessful`, `ongoing`, `completed`                                                                                                                                                         |
-| `pre_procedure_notes`  | string  | Notes before procedure                 | Max 1000 characters                                                                                                                                                                                                                |
-| `post_procedure_notes` | string  | Notes after procedure                  | Max 1000 characters                                                                                                                                                                                                                |
-| `complications`        | string  | Any complications that occurred        | Max 500 characters                                                                                                                                                                                                                 |
-| `doctor_id`            | integer | Doctor who performed/oversaw treatment | Must exist in users table                                                                                                                                                                                                          |
-| `nurse_id`             | integer | Nurse who assisted                     | Must exist in users table                                                                                                                                                                                                          |
+-   `treatment_name`, `medications`, `dosage`, `treatment_date`, `treatment_time`, `outcome`
+
+If you need to omit a field from the update, simply don't include it in the request payload.
+
+#### Request Parameters
+
+| Field                  | Type    | Required When Present | Description                            | Accepted Values                                                                                                                                                                                                                    |
+| ---------------------- | ------- | --------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `treatment_type`       | string  | No                    | Type of treatment                      | `surgery`, `radiotherapy`, `chemotherapy`, `targeted_therapy`, `hormone_therapy`, `immunotherapy`, `intervention_therapy`, `medication`, `physical_therapy`, `supportive_care`, `diagnostic`, `consultation`, `procedure`, `other` |
+| `treatment_name`       | string  | ✅ Yes                | Specific name of treatment             | Max 255 characters                                                                                                                                                                                                                 |
+| `description`          | string  | No                    | Detailed description                   | Max 1000 characters                                                                                                                                                                                                                |
+| `notes`                | string  | No                    | General notes                          | Max 1000 characters                                                                                                                                                                                                                |
+| `medications`          | string  | ✅ Yes                | Medications administered               | Max 500 characters                                                                                                                                                                                                                 |
+| `dosage`               | string  | ✅ Yes                | Dosage information                     | Max 255 characters                                                                                                                                                                                                                 |
+| `treatment_date`       | date    | ✅ Yes                | Date of treatment                      | Format: `YYYY-MM-DD`                                                                                                                                                                                                               |
+| `treatment_time`       | time    | ✅ Yes                | Time of treatment                      | Format: `HH:mm` (24-hour)                                                                                                                                                                                                          |
+| `results`              | string  | No                    | Treatment results                      | Max 1000 characters                                                                                                                                                                                                                |
+| `findings`             | string  | No                    | Medical findings                       | Max 1000 characters                                                                                                                                                                                                                |
+| `outcome`              | string  | ✅ Yes                | Treatment outcome                      | `pending`, `successful`, `partial`, `unsuccessful`, `ongoing`, `completed`                                                                                                                                                         |
+| `pre_procedure_notes`  | string  | No                    | Notes before procedure                 | Max 1000 characters                                                                                                                                                                                                                |
+| `post_procedure_notes` | string  | No                    | Notes after procedure                  | Max 1000 characters                                                                                                                                                                                                                |
+| `complications`        | string  | No                    | Any complications that occurred        | Max 500 characters                                                                                                                                                                                                                 |
+| `doctor_id`            | integer | No                    | Doctor who performed/oversaw treatment | Must exist in users table                                                                                                                                                                                                          |
+| `nurse_id`             | integer | No                    | Nurse who assisted                     | Must exist in users table                                                                                                                                                                                                          |
 
 #### Example Requests
 
